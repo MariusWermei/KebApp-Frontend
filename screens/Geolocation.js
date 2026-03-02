@@ -2,8 +2,7 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 
 export default function Geolocation({ navigation }) {
   const handleContinue = async () => {
-    // ici on branchera la permission GPS après
-    navigation.replace("Main"); // 👈 va vers tes tabs
+    navigation.replace("Main");
   };
 
   const handleSkip = () => {

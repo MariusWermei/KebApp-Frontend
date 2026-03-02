@@ -7,7 +7,7 @@ import HomeScreen from "./screens/HomeScreen";
 import MapScreen from "./screens/MapScreen";
 import CommandesScreen from "./screens/CommandesScreen";
 import ProfileScreen from "./screens/ProfileScreen";
-import Geolocation from "./screens/Geolocation"; // 👈 nouveau
+import Geolocation from "./screens/Geolocation";
 import OnboardingWelcome from "./screens/OnboardingWelcome";
 import OnboardingPreferences from "./screens/OnboardingPreferences";
 import OnboardingReady from "./screens/OnboardingReady";
@@ -50,10 +50,7 @@ export default function App() {
           component={OnboardingPreferences}
         />
         <Stack.Screen name="OnboardingReady" component={OnboardingReady} />
-        {/* 1) Page geo en premier */}
         <Stack.Screen name="Geolocation" component={Geolocation} />
-
-        {/* 2) Puis ton app normale (tabs) */}
         <Stack.Screen name="Main" component={TabNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
