@@ -18,13 +18,6 @@ export default function OnboardingWelcome({ navigation }) {
         Trouve les meilleurs kebabs autour de toi et commande en un clic.
       </Text>
 
-      {/* Dots de pagination */}
-      <View style={styles.dotsContainer}>
-        <View style={[styles.dot, styles.dotActive]} />
-        <View style={styles.dot} />
-        <View style={styles.dot} />
-      </View>
-
       {/* Bouton Next */}
       <Button title="Next →" onPress={() => navigation.navigate("SignIn")} />
     </View>
@@ -58,19 +51,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 30,
-  },
-  dotsContainer: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 40,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#DDD",
-  },
-  dotActive: {
-    backgroundColor: "#E87A2D",
   },
 });

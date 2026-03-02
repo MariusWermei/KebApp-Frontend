@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Button from "../components/Button";
 
 const TAGS = [
@@ -37,7 +31,7 @@ export default function OnboardingPreferences({ navigation }) {
       {/* Skip */}
       <TouchableOpacity
         style={styles.skipButton}
-        onPress={() => navigation.navigate("OnboardingReady")}
+        onPress={() => navigation.navigate("Geolocation")}
       >
         <Text style={styles.skipText}>Skip</Text>
       </TouchableOpacity>
@@ -68,13 +62,6 @@ export default function OnboardingPreferences({ navigation }) {
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
-
-      {/* Dots */}
-      <View style={styles.dotsContainer}>
-        <View style={styles.dot} />
-        <View style={[styles.dot, styles.dotActive]} />
-        <View style={styles.dot} />
       </View>
 
       {/* Bouton */}
@@ -142,19 +129,5 @@ const styles = StyleSheet.create({
   tagTextSelected: {
     color: "#FFFFFF",
     fontWeight: "bold",
-  },
-  dotsContainer: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 40,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#DDD",
-  },
-  dotActive: {
-    backgroundColor: "#E87A2D",
   },
 });

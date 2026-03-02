@@ -50,7 +50,7 @@ export default function SignInScreen() {
 
       if (data.result) {
         await AsyncStorage.setItem("token", data.token);
-        navigation.replace("Main"); // ✅ ta page principale
+        navigation.replace("OnboardingPreferences"); // ✅ Onboarding
       } else {
         Alert.alert("Erreur", data.error || "Connexion impossible");
       }
@@ -150,12 +150,6 @@ export default function SignInScreen() {
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity
-                onPress={() => Alert.alert("Info", "À implémenter")}
-              >
-                <Text style={styles.helper}>Forgot Password?</Text>
-              </TouchableOpacity>
-
               {/* Button */}
               <TouchableOpacity
                 style={[styles.primaryBtn, loading && { opacity: 0.85 }]}
@@ -187,7 +181,10 @@ export default function SignInScreen() {
               </TouchableOpacity>
 
               {/* Bottom */}
-              <TouchableOpacity style={styles.backRow} onPress={goToSignup}>
+              <TouchableOpacity
+                style={styles.backRow}
+                onPress={() => navigation.navigate("SignIn")}
+              >
                 <Ionicons name="arrow-back" size={18} color="#64748B" />
                 <Text style={styles.backText}> Back to Sign Up</Text>
               </TouchableOpacity>
@@ -261,7 +258,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  helper: { color: MUTED, fontSize: 12, marginTop: -6, marginBottom: 12 },
   primaryBtn: {
     backgroundColor: ORANGE,
     borderRadius: 14,

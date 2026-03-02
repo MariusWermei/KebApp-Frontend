@@ -59,7 +59,7 @@ export default function LoginScreen() {
   };
 
   const handleSkip = () => {
-    navigation.replace("Main");
+    navigation.replace("Geolocation");
   };
 
   const handleForgotPassword = () => {

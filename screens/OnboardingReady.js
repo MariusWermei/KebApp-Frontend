@@ -16,13 +16,6 @@ export default function OnboardingReady({ navigation }) {
         Découvre les meilleurs kebabs de Paris dès maintenant.
       </Text>
 
-      {/* Dots */}
-      <View style={styles.dotsContainer}>
-        <View style={styles.dot} />
-        <View style={styles.dot} />
-        <View style={[styles.dot, styles.dotActive]} />
-      </View>
-
       <Button
         title="Get Started"
         onPress={() => navigation.navigate("Geolocation")}
@@ -58,19 +51,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 30,
-  },
-  dotsContainer: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 40,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#DDD",
-  },
-  dotActive: {
-    backgroundColor: "#E87A2D",
   },
 });
