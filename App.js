@@ -11,6 +11,8 @@ import Geolocation from "./screens/Geolocation";
 import OnboardingWelcome from "./screens/OnboardingWelcome";
 import OnboardingPreferences from "./screens/OnboardingPreferences";
 import OnboardingReady from "./screens/OnboardingReady";
+import SignIn from "./screens/SignIn";
+import SignUp from "./screens/SignUp";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -45,6 +47,8 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="OnboardingWelcome" component={OnboardingWelcome} />
+        <Stack.Screen name="SignIn" component={SignIn} />
+        <Stack.Screen name="SignUp" component={SignUp} />
         <Stack.Screen
           name="OnboardingPreferences"
           component={OnboardingPreferences}
