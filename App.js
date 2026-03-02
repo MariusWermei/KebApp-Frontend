@@ -8,6 +8,9 @@ import MapScreen from "./screens/MapScreen";
 import CommandesScreen from "./screens/CommandesScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import Geolocation from "./screens/Geolocation"; // 👈 nouveau
+import OnboardingWelcome from "./screens/OnboardingWelcome";
+import OnboardingPreferences from "./screens/OnboardingPreferences";
+import OnboardingReady from "./screens/OnboardingReady";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -41,6 +44,12 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="OnboardingWelcome" component={OnboardingWelcome} />
+        <Stack.Screen
+          name="OnboardingPreferences"
+          component={OnboardingPreferences}
+        />
+        <Stack.Screen name="OnboardingReady" component={OnboardingReady} />
         {/* 1) Page geo en premier */}
         <Stack.Screen name="Geolocation" component={Geolocation} />
 
