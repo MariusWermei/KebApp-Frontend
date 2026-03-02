@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet, Image } from "react-native";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -33,6 +33,11 @@ export default function Geolocation({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require("../assets/geolocation.png")}
+        style={styles.image}
+        resizeMode="cover"
+      />
       <Text style={styles.title}>Activer la géolocalisation</Text>
 
       <Text style={styles.subtitle}>
@@ -52,6 +57,14 @@ export default function Geolocation({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  image: {
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    borderWidth: 3,
+    borderColor: "#E8622A",
+    marginBottom: 30,
+  },
   container: {
     flex: 1,
     justifyContent: "center",
