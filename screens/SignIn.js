@@ -15,6 +15,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
 export default function LoginScreen() {
   const navigation = useNavigation();
 
@@ -22,8 +24,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const API_URL = "http://192.168.100.94:3000";
 
   const handleSignin = async () => {
     if (!email.trim() || !password) {
