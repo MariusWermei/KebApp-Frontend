@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Button from "../components/Button";
+import colors from "../constants/colors";
+import fonts from "../constants/fonts";
+
+import { useDispatch, useSelector } from "react-redux";
+import { setPreferences } from "../reducers/user";
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const TAGS = [
   "poulet",
@@ -16,6 +23,8 @@ const TAGS = [
 ];
 
 export default function OnboardingPreferences({ navigation }) {
+  const dispatch = useDispatch();
+  const token = useSelector((state) => state.user.token);
   const [selectedTags, setSelectedTags] = useState([]);
 
   const toggleTag = (tag) => {
@@ -26,9 +35,31 @@ export default function OnboardingPreferences({ navigation }) {
     }
   };
 
+  const handleNext = async () => {
+    // 1. Sauvegarde dans le store Redux (persisté automatiquement)
+    dispatch(setPreferences(selectedTags));
+
+    // 2. Sauvegarde en BDD si l'utilisateur est connecté
+    if (token) {
+      try {
+        await fetch(`${API_URL}/users/preferences`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ preferences: selectedTags }),
+        });
+      } catch (error) {
+        console.log("Erreur sauvegarde preferences:", error);
+      }
+    }
+
+    navigation.navigate("OnboardingReady");
+  };
+
   return (
     <View style={styles.container}>
-      {/* Skip */}
       <TouchableOpacity
         style={styles.skipButton}
         onPress={() => navigation.navigate("Geolocation")}
@@ -41,7 +72,6 @@ export default function OnboardingPreferences({ navigation }) {
         Sélectionne tes préférences pour des recommandations personnalisées.
       </Text>
 
-      {/* Grille de tags */}
       <View style={styles.tagsContainer}>
         {TAGS.map((tag) => (
           <TouchableOpacity
@@ -64,11 +94,7 @@ export default function OnboardingPreferences({ navigation }) {
         ))}
       </View>
 
-      {/* Bouton */}
-      <Button
-        title="Next →"
-        onPress={() => navigation.navigate("OnboardingReady")}
-      />
+      <Button title="Next →" onPress={handleNext} />
     </View>
   );
 }
@@ -76,7 +102,7 @@ export default function OnboardingPreferences({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.backgroundLight,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 30,
@@ -87,19 +113,21 @@ const styles = StyleSheet.create({
     right: 25,
   },
   skipText: {
-    color: "#999",
-    fontSize: 16,
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
+    color: colors.textLight,
   },
   title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#2D2D2D",
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.h2,
+    color: colors.textDark,
     marginBottom: 10,
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 15,
-    color: "#888",
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
+    color: colors.textLight,
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 30,
@@ -113,21 +141,22 @@ const styles = StyleSheet.create({
   },
   tag: {
     borderWidth: 1,
-    borderColor: "#DDD",
+    borderColor: colors.borderLight,
     borderRadius: 20,
     paddingVertical: 10,
     paddingHorizontal: 18,
   },
   tagSelected: {
-    backgroundColor: "#E87A2D",
-    borderColor: "#E87A2D",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   tagText: {
-    fontSize: 14,
-    color: "#666",
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.small,
+    color: colors.textMuted,
   },
   tagTextSelected: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: fonts.family.bold,
+    color: colors.textWhite,
   },
 });

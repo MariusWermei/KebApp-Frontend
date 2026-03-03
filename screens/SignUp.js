@@ -10,16 +10,24 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  Keyboard,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import Button from "../components/Button";
+import colors from "../constants/colors";
+import fonts from "../constants/fonts";
+
+import { useDispatch } from "react-redux";
+import { setToken } from "../reducers/user";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function SignInScreen() {
+  const dispatch = useDispatch();
   const navigation = useNavigation();
+  const route = useRoute();
+
+  const fromOnboarding = route.params?.fromOnboarding ?? false;
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -27,7 +35,7 @@ export default function SignInScreen() {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSignin = async () => {
+  const handleSignup = async () => {
     if (!username.trim() || !email.trim() || !password) {
       Alert.alert("Erreur", "Username, email et mot de passe requis.");
       return;
@@ -49,8 +57,10 @@ export default function SignInScreen() {
       const data = await response.json();
 
       if (data.result) {
-        await AsyncStorage.setItem("token", data.token);
-        navigation.replace("OnboardingPreferences"); // ✅ Onboarding
+        dispatch(setToken(data.token));
+        fromOnboarding
+          ? navigation.replace("OnboardingPreferences")
+          : navigation.goBack();
       } else {
         Alert.alert("Erreur", data.error || "Connexion impossible");
       }
@@ -63,7 +73,6 @@ export default function SignInScreen() {
   };
 
   const goBack = () => navigation.goBack();
-  const goToSignup = () => navigation.navigate("SignUp"); // adapte le nom de ta route
 
   const handleGoogle = () => {
     Alert.alert("Info", "Google login à brancher ensuite");
@@ -84,7 +93,7 @@ export default function SignInScreen() {
             <View style={styles.card}>
               {/* Close button */}
               <TouchableOpacity style={styles.closeBtn} onPress={goBack}>
-                <Ionicons name="close" size={24} color="#0F172A" />
+                <Ionicons name="close" size={24} color={colors.textDark} />
               </TouchableOpacity>
 
               {/* Logo */}
@@ -106,7 +115,7 @@ export default function SignInScreen() {
                   value={username}
                   onChangeText={setUsername}
                   placeholder="Choose your username"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.textLight}
                   autoCapitalize="none"
                   style={styles.input}
                 />
@@ -119,7 +128,7 @@ export default function SignInScreen() {
                   value={email}
                   onChangeText={setEmail}
                   placeholder="name@example.com"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.textLight}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   style={styles.input}
@@ -133,7 +142,7 @@ export default function SignInScreen() {
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Enter your password"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.textLight}
                   secureTextEntry={!showPwd}
                   style={[styles.input, { paddingRight: 44 }]}
                 />
@@ -145,22 +154,16 @@ export default function SignInScreen() {
                   <Ionicons
                     name={showPwd ? "eye-off-outline" : "eye-outline"}
                     size={22}
-                    color="#94A3B8"
+                    color={colors.textLight}
                   />
                 </TouchableOpacity>
               </View>
 
               {/* Button */}
-              <TouchableOpacity
-                style={[styles.primaryBtn, loading && { opacity: 0.85 }]}
-                onPress={handleSignin}
-                disabled={loading}
-                activeOpacity={0.9}
-              >
-                <Text style={styles.primaryBtnText}>
-                  {loading ? "Signing In..." : "Login"}
-                </Text>
-              </TouchableOpacity>
+              <Button
+                title={loading ? "Signing Up..." : "Sign Up"}
+                onPress={handleSignup}
+              />
 
               {/* Divider OR */}
               <View style={styles.dividerRow}>
@@ -185,8 +188,12 @@ export default function SignInScreen() {
                 style={styles.backRow}
                 onPress={() => navigation.navigate("SignIn")}
               >
-                <Ionicons name="arrow-back" size={18} color="#64748B" />
-                <Text style={styles.backText}> Back to Sign Up</Text>
+                <Ionicons
+                  name="arrow-back"
+                  size={18}
+                  color={colors.textMuted}
+                />
+                <Text style={styles.backText}> Back to Sign In</Text>
               </TouchableOpacity>
 
               <Text style={styles.terms}>
@@ -202,17 +209,11 @@ export default function SignInScreen() {
   );
 }
 
-const ORANGE = "#F05A14";
-const CARD_BG = "#FBF7F4";
-const BORDER = "#E6EAF0";
-const TEXT = "#0F172A";
-const MUTED = "#64748B";
-
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#0B0B0B" },
+  safe: { flex: 1, backgroundColor: colors.backgroundCream },
   container: { flex: 1, justifyContent: "center" },
   card: {
-    backgroundColor: CARD_BG,
+    backgroundColor: colors.backgroundCream,
     borderRadius: 18,
     paddingHorizontal: 22,
     paddingVertical: 22,
@@ -228,27 +229,46 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  logoMark: { color: ORANGE, fontWeight: "900", fontSize: 18 },
-  title: { textAlign: "center", color: TEXT, fontSize: 30, fontWeight: "900" },
+  logoMark: {
+    color: colors.primary,
+    fontFamily: fonts.family.black,
+    fontSize: fonts.size.h4,
+  },
+  title: {
+    textAlign: "center",
+    color: colors.textDark,
+    fontFamily: fonts.family.black,
+    fontSize: 30,
+  },
   subtitle: {
     textAlign: "center",
-    color: MUTED,
-    fontSize: 14,
+    color: colors.textMuted,
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.small,
     marginTop: 6,
     marginBottom: 18,
   },
-  label: { color: TEXT, fontWeight: "800", fontSize: 14, marginBottom: 8 },
+  label: {
+    color: colors.textDark,
+    fontFamily: fonts.family.extraBold,
+    fontSize: fonts.size.small,
+    marginBottom: 8,
+  },
   inputWrap: {
     position: "relative",
-    backgroundColor: "#fff",
+    backgroundColor: colors.backgroundLight,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginBottom: 16,
   },
-  input: { fontSize: 15, color: TEXT },
+  input: {
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
+    color: colors.textDark,
+  },
   eyeBtn: {
     position: "absolute",
     right: 12,
@@ -258,35 +278,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  primaryBtn: {
-    backgroundColor: ORANGE,
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-  primaryBtnText: { color: "#fff", fontWeight: "900", fontSize: 16 },
   dividerRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 16,
     marginBottom: 14,
   },
-  dividerLine: { flex: 1, height: 1, backgroundColor: BORDER },
+  dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
   dividerText: {
     paddingHorizontal: 12,
-    color: "#94A3B8",
-    fontWeight: "900",
-    fontSize: 12,
+    color: colors.textLight,
+    fontFamily: fonts.family.black,
+    fontSize: fonts.size.caption,
   },
   secondaryBtn: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.backgroundLight,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: colors.border,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: "center",
@@ -296,22 +304,33 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 4,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: colors.border,
   },
-  secondaryText: { color: "#111827", fontWeight: "900", fontSize: 15 },
+  secondaryText: {
+    color: colors.textDark,
+    fontFamily: fonts.family.black,
+    fontSize: fonts.size.body,
+  },
   backRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     marginTop: 18,
   },
-  backText: { color: MUTED, fontWeight: "700" },
+  backText: {
+    color: colors.textMuted,
+    fontFamily: fonts.family.bold,
+  },
   terms: {
     textAlign: "center",
-    color: "#94A3B8",
+    color: colors.textLight,
+    fontFamily: fonts.family.regular,
     fontSize: 11,
     marginTop: 14,
     lineHeight: 16,
   },
-  link: { color: "#94A3B8", textDecorationLine: "underline" },
+  link: {
+    color: colors.textLight,
+    textDecorationLine: "underline",
+  },
 });

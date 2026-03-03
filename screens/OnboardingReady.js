@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import Button from "../components/Button";
+import colors from "../constants/colors";
+import fonts from "../constants/fonts";
 
 export default function OnboardingReady({ navigation }) {
   return (
@@ -17,7 +19,7 @@ export default function OnboardingReady({ navigation }) {
       </Text>
 
       <Button
-        title="Get Started"
+        title="Commencez"
         onPress={() => navigation.navigate("Geolocation")}
       />
     </View>
@@ -27,7 +29,7 @@ export default function OnboardingReady({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.backgroundLight,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 30,
@@ -39,15 +41,16 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#2D2D2D",
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.h2,
+    color: colors.textDark,
     marginBottom: 10,
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 15,
-    color: "#888",
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
+    color: colors.textLight,
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 30,

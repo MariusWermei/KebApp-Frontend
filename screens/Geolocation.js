@@ -1,13 +1,20 @@
 import { View, Text, Pressable, StyleSheet, Image } from "react-native";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Button from "../components/Button";
+import colors from "../constants/colors";
+import fonts from "../constants/fonts";
+
+import { useDispatch } from "react-redux";
+import { setHasOnboarded } from "../reducers/user";
 
 export default function Geolocation({ navigation }) {
+  const dispatch = useDispatch();
+
   const handleContinue = async () => {
     const result = await Location.requestForegroundPermissionsAsync();
     const status = result?.status;
 
-    // On stocke le choix
     await AsyncStorage.setItem("locationPermission", status || "unknown");
 
     if (status === "granted") {
@@ -18,17 +25,15 @@ export default function Geolocation({ navigation }) {
         JSON.stringify(location.coords),
       );
     } else {
-      // Supprimer l'ancienne loc si elle existe
       await AsyncStorage.removeItem("userLocation");
     }
 
-    navigation.replace("Main");
+    dispatch(setHasOnboarded());
   };
 
   const handleSkip = async () => {
-    // On considère "Passer" comme "denied"
     await AsyncStorage.setItem("locationPermission", "denied");
-    navigation.replace("Main");
+    dispatch(setHasOnboarded());
   };
 
   return (
@@ -45,9 +50,7 @@ export default function Geolocation({ navigation }) {
         plus vite.
       </Text>
 
-      <Pressable style={styles.button} onPress={handleContinue}>
-        <Text style={styles.buttonText}>Activer</Text>
-      </Pressable>
+      <Button title="Activer" onPress={handleContinue} />
 
       <Pressable onPress={handleSkip}>
         <Text style={styles.skip}>Passer</Text>
@@ -57,34 +60,39 @@ export default function Geolocation({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.backgroundLight,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
   image: {
     width: 250,
     height: 250,
     borderRadius: 125,
     borderWidth: 3,
-    borderColor: "#E8622A",
+    borderColor: colors.primary,
     marginBottom: 30,
   },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
+  title: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.h3,
+    color: colors.textDark,
+    marginBottom: 10,
   },
-  title: { fontSize: 22, fontWeight: "700", marginBottom: 10 },
   subtitle: {
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
     textAlign: "center",
-    color: "#8A94A6",
+    color: colors.textLight,
     marginBottom: 30,
     lineHeight: 22,
   },
-  button: {
-    width: "100%",
-    backgroundColor: "#E8622A",
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: "center",
+  skip: {
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
+    marginTop: 18,
+    color: colors.textLight,
   },
-  buttonText: { color: "white", fontSize: 18, fontWeight: "700" },
-  skip: { marginTop: 18, color: "#8A94A6", fontSize: 16 },
 });

@@ -11,14 +11,23 @@ import {
   KeyboardAvoidingView,
   ScrollView,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import Button from "../components/Button";
+import colors from "../constants/colors";
+import fonts from "../constants/fonts";
+
+import { useDispatch } from "react-redux";
+import { setToken } from "../reducers/user";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function LoginScreen() {
+  const dispatch = useDispatch();
   const navigation = useNavigation();
+  const route = useRoute();
+
+  const fromOnboarding = route.params?.fromOnboarding ?? false;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,8 +54,10 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (data.result) {
-        await AsyncStorage.setItem("token", data.token);
-        navigation.replace("OnboardingPreferences");
+        dispatch(setToken(data.token));
+        fromOnboarding
+          ? navigation.replace("OnboardingPreferences")
+          : navigation.goBack();
       } else {
         Alert.alert("Erreur", data.error || "Connexion impossible");
       }
@@ -58,8 +69,10 @@ export default function LoginScreen() {
     }
   };
 
-  const handleSkip = () => {
-    navigation.replace("Geolocation");
+  const handleClose = () => {
+    fromOnboarding
+      ? navigation.replace("Geolocation")
+      : navigation.goBack();
   };
 
   const handleForgotPassword = () => {
@@ -75,7 +88,7 @@ export default function LoginScreen() {
   };
 
   const goToSignup = () => {
-    navigation.navigate("SignUp"); // adapte le nom de ton screen
+    navigation.navigate("SignUp", { fromOnboarding });
   };
 
   return (
@@ -93,13 +106,21 @@ export default function LoginScreen() {
           <View style={styles.canvas}>
             {/* Card */}
             <View style={styles.card}>
-              <TouchableOpacity style={styles.skipWrap} onPress={handleSkip}>
-                <Text style={styles.skip}>Skip</Text>
+              <TouchableOpacity style={styles.closeWrap} onPress={handleClose}>
+                {fromOnboarding ? (
+                  <Text style={styles.skip}>Skip</Text>
+                ) : (
+                  <Ionicons name="close" size={24} color={colors.textDark} />
+                )}
               </TouchableOpacity>
 
               <View style={styles.iconWrap}>
                 <View style={styles.iconBox}>
-                  <Ionicons name="rocket-outline" size={26} color="#F05A14" />
+                  <Ionicons
+                    name="rocket-outline"
+                    size={26}
+                    color={colors.primary}
+                  />
                 </View>
               </View>
 
@@ -115,7 +136,7 @@ export default function LoginScreen() {
                   value={email}
                   onChangeText={setEmail}
                   placeholder="name@example.com"
-                  placeholderTextColor="#9AA4B2"
+                  placeholderTextColor={colors.textLight}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   style={styles.input}
@@ -135,7 +156,7 @@ export default function LoginScreen() {
                   value={password}
                   onChangeText={setPassword}
                   placeholder="••••••••"
-                  placeholderTextColor="#9AA4B2"
+                  placeholderTextColor={colors.textLight}
                   secureTextEntry={!showPwd}
                   style={styles.input}
                 />
@@ -147,30 +168,16 @@ export default function LoginScreen() {
                   <Ionicons
                     name={showPwd ? "eye-off-outline" : "eye-outline"}
                     size={22}
-                    color="#9AA4B2"
+                    color={colors.textLight}
                   />
                 </TouchableOpacity>
               </View>
 
               {/* Login button */}
-              <TouchableOpacity
-                style={[styles.loginBtn, loading && { opacity: 0.85 }]}
+              <Button
+                title={loading ? "Login ..." : "Login"}
                 onPress={handleSignin}
-                disabled={loading}
-                activeOpacity={0.9}
-              >
-                <View style={styles.loginBtnInner}>
-                  <Text style={styles.loginText}>
-                    {loading ? "Login..." : "Login"}
-                  </Text>
-                  <Ionicons
-                    name="arrow-forward-outline"
-                    size={18}
-                    color="#fff"
-                    style={{ marginLeft: 8 }}
-                  />
-                </View>
-              </TouchableOpacity>
+              />
 
               {/* Divider */}
               <View style={styles.dividerRow}>
@@ -196,7 +203,11 @@ export default function LoginScreen() {
                   onPress={handleApple}
                 >
                   <View style={styles.socialInner}>
-                    <Ionicons name="logo-apple" size={18} color="#111827" />
+                    <Ionicons
+                      name="logo-apple"
+                      size={18}
+                      color={colors.textDark}
+                    />
                     <Text style={styles.socialText}>Apple</Text>
                   </View>
                 </TouchableOpacity>
@@ -217,39 +228,32 @@ export default function LoginScreen() {
   );
 }
 
-const ORANGE = "#F05A14";
-const BG = "#0B0B0B";
-const CARD_BG = "#FBF7F4";
-const BORDER = "#E6EAF0";
-const TEXT = "#0F172A";
-const MUTED = "#64748B";
-
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: colors.backgroundCream,
   },
   canvas: {
     flex: 1,
     justifyContent: "center",
   },
   card: {
-    backgroundColor: CARD_BG,
+    backgroundColor: colors.backgroundCream,
     borderRadius: 18,
     paddingHorizontal: 22,
     paddingVertical: 22,
     flex: 1,
   },
-  skipWrap: {
+  closeWrap: {
     position: "absolute",
     top: 18,
     right: 18,
     zIndex: 10,
   },
   skip: {
-    color: ORANGE,
-    fontWeight: "700",
-    fontSize: 16,
+    fontFamily: fonts.family.bold,
+    color: colors.primary,
+    fontSize: fonts.size.body,
   },
   iconWrap: {
     alignItems: "center",
@@ -266,37 +270,39 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: "center",
-    color: TEXT,
-    fontSize: 32,
-    fontWeight: "800",
+    color: colors.textDark,
+    fontFamily: fonts.family.extraBold,
+    fontSize: fonts.size.h1,
     marginTop: 4,
   },
   subtitle: {
     textAlign: "center",
-    color: MUTED,
-    fontSize: 14,
+    color: colors.textMuted,
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.small,
     marginTop: 6,
     marginBottom: 20,
   },
   label: {
-    color: TEXT,
-    fontWeight: "700",
-    fontSize: 14,
+    color: colors.textDark,
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.small,
     marginBottom: 8,
   },
   inputWrap: {
     position: "relative",
-    backgroundColor: "#fff",
+    backgroundColor: colors.backgroundLight,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginBottom: 16,
   },
   input: {
-    fontSize: 15,
-    color: TEXT,
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
+    color: colors.textDark,
     paddingRight: 34,
   },
   eyeBtn: {
@@ -315,30 +321,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   forgot: {
-    color: ORANGE,
-    fontWeight: "700",
-    fontSize: 13,
-  },
-  loginBtn: {
-    backgroundColor: ORANGE,
-    borderRadius: 14,
-    paddingVertical: 16,
-    marginTop: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-  loginBtnInner: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loginText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "800",
+    color: colors.primary,
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.caption,
   },
   dividerRow: {
     flexDirection: "row",
@@ -349,13 +334,13 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#E6EAF0",
+    backgroundColor: colors.border,
   },
   dividerText: {
     paddingHorizontal: 12,
-    color: "#94A3B8",
-    fontWeight: "700",
-    fontSize: 12,
+    color: colors.textLight,
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.caption,
   },
   socialRow: {
     flexDirection: "row",
@@ -364,9 +349,9 @@ const styles = StyleSheet.create({
   },
   socialBtn: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.backgroundLight,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: colors.border,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: "center",
@@ -380,13 +365,13 @@ const styles = StyleSheet.create({
   socialIcon: {
     width: 18,
     textAlign: "center",
-    fontWeight: "900",
+    fontFamily: fonts.family.black,
     color: "#4285F4",
   },
   socialText: {
-    color: "#111827",
-    fontSize: 15,
-    fontWeight: "800",
+    color: colors.textDark,
+    fontFamily: fonts.family.extraBold,
+    fontSize: fonts.size.body,
   },
   bottomRow: {
     flexDirection: "row",
@@ -394,11 +379,11 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   bottomText: {
-    color: "#64748B",
-    fontWeight: "600",
+    color: colors.textMuted,
+    fontFamily: fonts.family.semibold,
   },
   bottomLink: {
-    color: ORANGE,
-    fontWeight: "900",
+    color: colors.primary,
+    fontFamily: fonts.family.black,
   },
 });
