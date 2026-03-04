@@ -25,9 +25,21 @@ const userSlice = createSlice({
       // On ne reset PAS hasOnboarded — même après un logout,
       // l'utilisateur ne doit pas revoir l'onboarding
     },
+    // Reset Onboarding spécialement pour la période de développement, permet de reset le store persistant
+    // A SUPPRIMER POUR LE MVP DE FIN
+    resetOnboarding: (state) => {
+      state.token = null;
+      state.preferences = [];
+      state.hasOnboarded = false;
+    },
   },
 });
 
-export const { setToken, setPreferences, setHasOnboarded, logout } =
-  userSlice.actions;
+export const {
+  setToken,
+  setPreferences,
+  setHasOnboarded,
+  logout,
+  resetOnboarding,
+} = userSlice.actions;
 export default userSlice.reducer;

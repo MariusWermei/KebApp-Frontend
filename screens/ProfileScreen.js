@@ -1,11 +1,13 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { logout } from "../reducers/user";
+import { logout, resetOnboarding } from "../reducers/user";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "../components/Button";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -20,7 +22,11 @@ export default function ProfileScreen() {
   if (!token) {
     return (
       <View style={styles.container}>
-        <Ionicons name="person-circle-outline" size={80} color={colors.textLight} />
+        <Ionicons
+          name="person-circle-outline"
+          size={80}
+          color={colors.textLight}
+        />
         <Text style={styles.title}>Mon Profil</Text>
         <Text style={styles.subtitle}>
           Connecte-toi pour accéder à ton profil et tes commandes.
@@ -28,15 +34,20 @@ export default function ProfileScreen() {
 
         <Button
           title="Se connecter"
-          onPress={() => navigation.navigate("SignIn", { fromOnboarding: false })}
+          onPress={() =>
+            navigation.navigate("SignIn", { fromOnboarding: false })
+          }
         />
 
         <TouchableOpacity
           style={styles.signupLink}
-          onPress={() => navigation.navigate("SignUp", { fromOnboarding: false })}
+          onPress={() =>
+            navigation.navigate("SignUp", { fromOnboarding: false })
+          }
         >
           <Text style={styles.signupText}>
-            Pas de compte ? <Text style={styles.signupBold}>Créer un compte</Text>
+            Pas de compte ?{" "}
+            <Text style={styles.signupBold}>Créer un compte</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -52,6 +63,16 @@ export default function ProfileScreen() {
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={20} color={colors.primary} />
         <Text style={styles.logoutText}>Se déconnecter</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.logoutBtn}
+        onPress={async () => {
+          await AsyncStorage.clear();
+          dispatch(resetOnboarding());
+        }}
+      >
+        <Ionicons name="refresh-outline" size={20} color={colors.primary} />
+        <Text style={styles.logoutText}>RESET (dev)</Text>
       </TouchableOpacity>
     </View>
   );
