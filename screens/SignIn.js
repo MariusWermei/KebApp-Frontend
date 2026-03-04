@@ -55,9 +55,14 @@ export default function LoginScreen() {
 
       if (data.result) {
         dispatch(setToken(data.token));
-        fromOnboarding
-          ? navigation.replace("OnboardingPreferences")
-          : navigation.goBack();
+        if (fromOnboarding) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "OnboardingPreferences" }],
+          });
+        } else {
+          navigation.goBack();
+        }
       } else {
         Alert.alert("Erreur", data.error || "Connexion impossible");
       }
@@ -70,9 +75,7 @@ export default function LoginScreen() {
   };
 
   const handleClose = () => {
-    fromOnboarding
-      ? navigation.replace("Geolocation")
-      : navigation.goBack();
+    fromOnboarding ? navigation.replace("Geolocation") : navigation.goBack();
   };
 
   const handleForgotPassword = () => {
