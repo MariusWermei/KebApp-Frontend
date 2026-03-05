@@ -754,10 +754,10 @@
   resolved "https://registry.yarnpkg.com/@expo-google-fonts/poppins/-/poppins-0.4.1.tgz#bf49b2a14a5d255fa3404fdef7bcbbb04025f0a4"
   integrity sha512-LiX5oEryJqDt3UmWwr4oqf11hGMz/JEffkkNcZ3UtGwyoMFzXmBmTwcrAWrEttxypxmLNmPykDg+CY2VjKve9A==
 
-"@expo/cli@55.0.14":
-  version "55.0.14"
-  resolved "https://registry.yarnpkg.com/@expo/cli/-/cli-55.0.14.tgz#84654dae7b042f83720a4d001241bb5e806265cc"
-  integrity sha512-glXPSjjLCIz+KX/ezqLTGIF9eTE1lexiCxunvB3loRZNnGeBDGW3eF++cuPKudW26jeC6bqZkcqBG7Lp0Sp9qg==
+"@expo/cli@55.0.15":
+  version "55.0.15"
+  resolved "https://registry.yarnpkg.com/@expo/cli/-/cli-55.0.15.tgz#0bd700b826afe3047c24525a35804c660cf14e27"
+  integrity sha512-Qd4aF2+wT9LtdV7G/gULbx/t8FJ/OVtwuNkLcZt1XlosQ5XX/C/3ywZXYl+/bYcHUmuO1TBD3Fg05bNlmL6vrw==
   dependencies:
     "@expo/code-signing-certificates" "^0.0.6"
     "@expo/config" "~55.0.8"
@@ -2306,6 +2306,18 @@ expo-font@~55.0.4:
   dependencies:
     fontfaceobserver "^2.1.0"
 
+expo-image-loader@~55.0.0:
+  version "55.0.0"
+  resolved "https://registry.yarnpkg.com/expo-image-loader/-/expo-image-loader-55.0.0.tgz#56ae6631a0f43191432296a1f7f1e9737e653cfe"
+  integrity sha512-NOjp56wDrfuA5aiNAybBIjqIn1IxKeGJ8CECWZncQ/GzjZfyTYAHTCyeApYkdKkMBLHINzI4BbTGSlbCa0fXXQ==
+
+expo-image-picker@^55.0.11:
+  version "55.0.11"
+  resolved "https://registry.yarnpkg.com/expo-image-picker/-/expo-image-picker-55.0.11.tgz#817ab262a18dc5b52fced3a09af65c8349ddeb42"
+  integrity sha512-geJklIGdAR2N16iSk86oyJe7QgX5RpqDX1FjKpxO53fF4D0eBmg5Irm6gRwT0b+DHP1kJevZgzzbVJsRAV362g==
+  dependencies:
+    expo-image-loader "~55.0.0"
+
 expo-keep-awake@~55.0.4:
   version "55.0.4"
   resolved "https://registry.yarnpkg.com/expo-keep-awake/-/expo-keep-awake-55.0.4.tgz#8fe3685b75bda28e15268821a384e069f0395fab"
@@ -2328,10 +2340,10 @@ expo-modules-autolinking@55.0.8:
     chalk "^4.1.0"
     commander "^7.2.0"
 
-expo-modules-core@55.0.13:
-  version "55.0.13"
-  resolved "https://registry.yarnpkg.com/expo-modules-core/-/expo-modules-core-55.0.13.tgz#7707078561cf489f95a68cc6fcbf9bbf6bf0fd24"
-  integrity sha512-DYLQTOJAR7jD3M9S0sH9myZaPEtShdicHrPiWcupIXMeMkQxFzErx+adUI8gZPy4AU45BgeGgtaogRfT25iLfw==
+expo-modules-core@55.0.14:
+  version "55.0.14"
+  resolved "https://registry.yarnpkg.com/expo-modules-core/-/expo-modules-core-55.0.14.tgz#6ae33f8023acdcfeebcb9de992b576749494b419"
+  integrity sha512-eAerOnnhbZitUAKbY7B61kIudiabAz/m/oMGINms2+GeY1DRhdvrm5aAkhkHHmykPrg58PPryXtmF14YAYWViw==
   dependencies:
     invariant "^2.2.4"
 
@@ -2354,13 +2366,13 @@ expo-status-bar@~55.0.4:
   dependencies:
     react-native-is-edge-to-edge "^1.2.1"
 
-expo@~55.0.4:
-  version "55.0.4"
-  resolved "https://registry.yarnpkg.com/expo/-/expo-55.0.4.tgz#69e10716a5260830f6281a4abdd66c5107d765dc"
-  integrity sha512-cbQBPYwmH6FRvh942KR8mSdEcrVdsIMkjdHthtf59zlpzgrk28FabhOdL/Pc9WuS+CsIP3EIQbZqmLkTjv6qPg==
+expo@^55.0.5:
+  version "55.0.5"
+  resolved "https://registry.yarnpkg.com/expo/-/expo-55.0.5.tgz#9d6dfc882c24300ef990d9231b8f3580bbe8d249"
+  integrity sha512-toVYbRU0gH50QSlIyrAswXD87RKi2pcJcHZpBDuqU3mIQZzJkTcWgRLWN/2R/wnd3kuJTtW5xlr5ndVG6xEWxQ==
   dependencies:
     "@babel/runtime" "^7.20.0"
-    "@expo/cli" "55.0.14"
+    "@expo/cli" "55.0.15"
     "@expo/config" "~55.0.8"
     "@expo/config-plugins" "~55.0.6"
     "@expo/devtools" "55.0.2"
@@ -2378,7 +2390,7 @@ expo@~55.0.4:
     expo-font "~55.0.4"
     expo-keep-awake "~55.0.4"
     expo-modules-autolinking "55.0.8"
-    expo-modules-core "55.0.13"
+    expo-modules-core "55.0.14"
     pretty-format "^29.7.0"
     react-refresh "^0.14.2"
     whatwg-url-minimum "^0.1.1"
@@ -2411,9 +2423,9 @@ fb-watchman@^2.0.0:
     bser "2.1.1"
 
 fetch-nodeshim@^0.4.6:
-  version "0.4.8"
-  resolved "https://registry.yarnpkg.com/fetch-nodeshim/-/fetch-nodeshim-0.4.8.tgz#e87df7d8f85c6409903dac402aaf9465e36b5165"
-  integrity sha512-YW5vG33rabBq6JpYosLNoXoaMN69/WH26MeeX2hkDVjN6UlvRGq3Wkazl9H0kisH95aMu/HtHL64JUvv/+Nv/g==
+  version "0.4.9"
+  resolved "https://registry.yarnpkg.com/fetch-nodeshim/-/fetch-nodeshim-0.4.9.tgz#e2688d8df2de3d4e4ead5b9f6f52fe407a88f0ce"
+  integrity sha512-XIQWlB2A4RZ7NebXWGxS0uDMdvRHkiUDTghBVJKFg9yEOd45w/PP8cZANuPf2H08W6Cor3+2n7Q6TTZgAS3Fkw==
 
 fill-range@^7.1.1:
   version "7.1.1"

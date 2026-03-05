@@ -19,6 +19,7 @@ import fonts from "../constants/fonts";
 
 import { useDispatch } from "react-redux";
 import { setToken } from "../reducers/user";
+import { setUser } from "../reducers/user";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -54,7 +55,12 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (data.result) {
+        console.log("🔍 Backend retourne:", data.user); // Vérifie les points ici
         dispatch(setToken(data.token));
+        dispatch(setUser(data.user)); // Passe tout l'objet, pas juste le username
+        fromOnboarding
+          ? navigation.replace("OnboardingPreferences")
+          : navigation.goBack();
         if (fromOnboarding) {
           navigation.reset({
             index: 0,

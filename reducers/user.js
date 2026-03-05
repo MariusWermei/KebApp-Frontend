@@ -8,6 +8,12 @@ const userSlice = createSlice({
     hasOnboarded: false,
   },
   reducers: {
+    setUser: (state, action) => {
+      console.log("Reducer setUser reçoit:", action.payload);
+      state.username = action.payload.username;
+      state.email = action.payload.email;
+      state.points = action.payload.points;
+    },
     setToken: (state, action) => {
       state.token = action.payload;
     },
@@ -37,6 +43,7 @@ const userSlice = createSlice({
 
 export const {
   setToken,
+  setUser,
   setPreferences,
   setHasOnboarded,
   logout,
