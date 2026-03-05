@@ -110,9 +110,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* SearchBar */}
-        <SearchBar value={search} onChangeText={setSearch} />
-
         {/* FilterTags */}
         <FilterTags selected={selectedTags} onToggle={toggleTag} />
 

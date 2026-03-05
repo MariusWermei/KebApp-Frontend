@@ -34,7 +34,7 @@ import OnboardingPreferences from "./screens/OnboardingPreferences";
 import OnboardingReady from "./screens/OnboardingReady";
 import SignIn from "./screens/SignIn";
 import SignUp from "./screens/SignUp";
-import RestaurantList from "./screens/RestaurantsList";
+import RestaurantsList from "./screens/RestaurantsList";
 
 // Config redux-persist
 const persistConfig = {
@@ -97,7 +97,7 @@ function AppNavigator() {
           <Stack.Screen name="Main" component={TabNavigator} />
           <Stack.Screen name="SignIn" component={SignIn} />
           <Stack.Screen name="SignUp" component={SignUp} />
-          <Stack.Screen name="RestaurantList" component={RestaurantList} />
+          <Stack.Screen name="RestaurantsList" component={RestaurantsList} />
         </>
       ) : (
         <>

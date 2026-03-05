@@ -4,7 +4,7 @@ import fonts from "../constants/fonts";
 
 const FILTERS = [
   "halal",
-  "poulet",
+  "🍗 poulet",
   "agneau",
   "veau",
   "mixte",
@@ -21,6 +21,7 @@ export default function FilterTags({ selected, onToggle }) {
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}
+      style={{ flexGrow: 0 }}
     >
       {FILTERS.map((tag) => {
         const isActive = selected.includes(tag);
