@@ -4,6 +4,10 @@ const userSlice = createSlice({
   name: "user",
   initialState: {
     token: null,
+    username: null,
+    email: null,
+    points: 0,
+    avatar: null,
     preferences: [],
     hasOnboarded: false,
   },
@@ -13,6 +17,7 @@ const userSlice = createSlice({
       state.username = action.payload.username;
       state.email = action.payload.email;
       state.points = action.payload.points;
+      state.avatar = action.payload.avatar;
     },
     setToken: (state, action) => {
       state.token = action.payload;

@@ -6,16 +6,21 @@ import {
   SafeAreaView,
   ScrollView,
   Platform,
+  Image,
+  Alert,
 } from "react-native";
-import { logout, resetOnboarding } from "../reducers/user";
+import { logout, resetOnboarding, setUser } from "../reducers/user";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons, Feather } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import Button from "../components/Button";
 import SettingRow from "../components/SettingRow";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 // ==================== COMPONENTS ====================
 
@@ -23,7 +28,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 function PointsCard({ points = 0 }) {
   const nextRewardAt = 2000;
   const progress = Math.min(points / nextRewardAt, 1);
-  const percentageText = Math.floor(progress * 100); // 👈 floor pour éviter arrondi à 100%
+  const percentageText = Math.floor(progress * 100);
 
   return (
     <View style={styles.pointsCard}>
@@ -55,12 +60,50 @@ export default function ProfileScreen() {
   const username = useSelector((state) => state.user.username);
   const email = useSelector((state) => state.user.email);
   const points = useSelector((state) => state.user.points) ?? 0;
+  const avatar = useSelector((state) => state.user.avatar);
 
-  console.log("📊 ProfileScreen Redux:", { username, email, points });
+  console.log("📊 ProfileScreen Redux:", { username, email, points, avatar });
 
-  const handleEditProfile = () => {
-    // TODO: Navigation vers écran d'édition profil
-    console.log("Éditer le profil");
+  const handleEditProfile = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permission refusée", "Autorise l'accès à ta galerie.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (result.canceled) return;
+
+    const uri = result.assets[0].uri;
+    const formData = new FormData();
+    formData.append("avatar", {
+      uri,
+      type: "image/jpeg",
+      name: "avatar.jpg",
+    });
+
+    try {
+      const response = await fetch(`${API_URL}/users/avatar`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.result) {
+        dispatch(setUser({ username, email, points, avatar: data.avatar }));
+      } else {
+        Alert.alert("Erreur", data.error || "Upload impossible");
+      }
+    } catch (err) {
+      Alert.alert("Erreur réseau", "Impossible de contacter le serveur.");
+    }
   };
 
   const handleLogout = () => {
@@ -68,7 +111,6 @@ export default function ProfileScreen() {
   };
 
   const handleSettingPress = (routeName) => {
-    // TODO: Ajouter ces routes au navigateur si elles n'existent pas
     console.log(`Navigation vers ${routeName}`);
     // navigation.navigate(routeName);
   };
@@ -126,7 +168,11 @@ export default function ProfileScreen() {
         <View style={styles.avatarSection}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>{initial}</Text>
+              {avatar ? (
+                <Image source={{ uri: avatar }} style={styles.avatarImage} />
+              ) : (
+                <Text style={styles.avatarText}>{initial}</Text>
+              )}
             </View>
 
             {/* Bouton edit */}
@@ -285,6 +331,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 3,
     borderColor: "#FFDCC9",
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   avatarText: {
     fontSize: 42,
