@@ -103,7 +103,11 @@ export default function RestaurantsList() {
               <RestaurantCard
                 restaurant={item}
                 variant="vertical"
-                onPress={() => {}}
+                onPress={() => {
+                  navigation.navigate("Restaurant", {
+                    restaurantName: item.name,
+                  });
+                }}
               />
             );
           }}

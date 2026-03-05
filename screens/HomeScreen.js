@@ -139,7 +139,11 @@ export default function HomeScreen() {
                 key={restaurant._id}
                 restaurant={restaurant}
                 variant="horizontal"
-                onPress={() => {}}
+                onPress={() => {
+                  navigation.navigate("Restaurant", {
+                    restaurantName: restaurant.name,
+                  });
+                }}
                 preferences={preferences}
               />
             ))}
@@ -179,7 +183,11 @@ export default function HomeScreen() {
               key={restaurant._id}
               restaurant={restaurant}
               variant="horizontal"
-              onPress={() => {}}
+              onPress={() => {
+                navigation.navigate("Restaurant", {
+                  restaurantName: restaurant.name,
+                });
+              }}
             />
           ))}
         </ScrollView>
