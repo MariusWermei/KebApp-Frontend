@@ -61,6 +61,14 @@ export default function LoginScreen() {
         fromOnboarding
           ? navigation.replace("OnboardingPreferences")
           : navigation.goBack();
+        if (fromOnboarding) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "OnboardingPreferences" }],
+          });
+        } else {
+          navigation.goBack();
+        }
       } else {
         Alert.alert("Erreur", data.error || "Connexion impossible");
       }
