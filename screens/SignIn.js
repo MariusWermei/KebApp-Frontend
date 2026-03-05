@@ -70,9 +70,7 @@ export default function LoginScreen() {
   };
 
   const handleClose = () => {
-    fromOnboarding
-      ? navigation.replace("Geolocation")
-      : navigation.goBack();
+    fromOnboarding ? navigation.replace("Geolocation") : navigation.goBack();
   };
 
   const handleForgotPassword = () => {

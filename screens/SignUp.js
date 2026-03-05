@@ -58,9 +58,7 @@ export default function SignInScreen() {
 
       if (data.result) {
         dispatch(setToken(data.token));
-        fromOnboarding
-          ? navigation.replace("OnboardingPreferences")
-          : navigation.goBack();
+        navigation.replace("Main");
       } else {
         Alert.alert("Erreur", data.error || "Connexion impossible");
       }
