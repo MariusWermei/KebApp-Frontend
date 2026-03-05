@@ -8,6 +8,11 @@ const userSlice = createSlice({
     hasOnboarded: false,
   },
   reducers: {
+    setUser: (state, action) => {
+      state.username = action.payload.username;
+      state.email = action.payload.email;
+      state.points = action.payload.points;
+    },
     setToken: (state, action) => {
       state.token = action.payload;
     },
@@ -37,6 +42,7 @@ const userSlice = createSlice({
 
 export const {
   setToken,
+  setUser,
   setPreferences,
   setHasOnboarded,
   logout,

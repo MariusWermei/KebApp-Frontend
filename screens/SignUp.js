@@ -19,6 +19,7 @@ import fonts from "../constants/fonts";
 
 import { useDispatch } from "react-redux";
 import { setToken } from "../reducers/user";
+import { setUser } from "../reducers/user";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -58,6 +59,7 @@ export default function SignInScreen() {
 
       if (data.result) {
         dispatch(setToken(data.token));
+        dispatch(setUser(data.user));
         fromOnboarding
           ? navigation.replace("OnboardingPreferences")
           : navigation.goBack();

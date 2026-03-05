@@ -19,6 +19,7 @@ import fonts from "../constants/fonts";
 
 import { useDispatch } from "react-redux";
 import { setToken } from "../reducers/user";
+import { setUser } from "../reducers/user";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -55,6 +56,7 @@ export default function LoginScreen() {
 
       if (data.result) {
         dispatch(setToken(data.token));
+        dispatch(setUser(data.user)); // 👈 Passe tout l'objet, pas juste le username
         fromOnboarding
           ? navigation.replace("OnboardingPreferences")
           : navigation.goBack();
@@ -70,9 +72,7 @@ export default function LoginScreen() {
   };
 
   const handleClose = () => {
-    fromOnboarding
-      ? navigation.replace("Geolocation")
-      : navigation.goBack();
+    fromOnboarding ? navigation.replace("Geolocation") : navigation.goBack();
   };
 
   const handleForgotPassword = () => {

@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   View,
   Text,
@@ -53,16 +52,9 @@ export default function ProfileScreen() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const token = useSelector((state) => state.user.token);
-
-  // Mock données utilisateur
-  // TODO: Récupérer depuis Redux state.user ou API
-  const [user] = useState({
-    firstName: "Alex",
-    lastName: "Thompson",
-    email: "alex.thompson@example.com",
-    points: 1250,
-    avatarUrl: null, // null = affiche les initiales
-  });
+  const username = useSelector((state) => state.user.username);
+  const email = useSelector((state) => state.user.email);
+  const points = useSelector((state) => state.user.points) ?? 0;
 
   const handleEditProfile = () => {
     // TODO: Navigation vers écran d'édition profil
@@ -115,9 +107,8 @@ export default function ProfileScreen() {
     );
   }
 
-  // Calcul des initiales et nom complet
-  const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
-  const fullName = `${user.firstName} ${user.lastName}`;
+  // Calcul de l'initial du username
+  const initial = username ? username[0].toUpperCase() : "?";
 
   // Si l'utilisateur est connecté
   return (
@@ -133,7 +124,7 @@ export default function ProfileScreen() {
         <View style={styles.avatarSection}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>{initials}</Text>
+              <Text style={styles.avatarText}>{initial}</Text>
             </View>
 
             {/* Bouton edit */}
@@ -147,12 +138,12 @@ export default function ProfileScreen() {
           </View>
 
           {/* Nom + Email */}
-          <Text style={styles.userName}>{fullName}</Text>
-          <Text style={styles.userEmail}>{user.email}</Text>
+          <Text style={styles.userName}>{username}</Text>
+          <Text style={styles.userEmail}>{email}</Text>
         </View>
 
         {/* ========== POINTS CARD ========== */}
-        <PointsCard points={user.points} />
+        <PointsCard points={points} />
 
         {/* ========== RÉGLAGES SECTION ========== */}
         <View style={styles.settingsSection}>
@@ -259,7 +250,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F6F7FB",
   },
-
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 12,
@@ -280,12 +270,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 32,
   },
-
   avatarContainer: {
     position: "relative",
     marginBottom: 12,
   },
-
   avatarPlaceholder: {
     width: 120,
     height: 120,
@@ -296,13 +284,11 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "#FFDCC9",
   },
-
   avatarText: {
     fontSize: 42,
     fontFamily: fonts.family.bold,
     color: colors.primary,
   },
-
   editButton: {
     position: "absolute",
     bottom: 0,
@@ -320,19 +306,15 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 4,
       },
-      android: {
-        elevation: 5,
-      },
+      android: { elevation: 5 },
     }),
   },
-
   userName: {
     fontSize: fonts.size.h4,
     fontFamily: fonts.family.bold,
     color: colors.textDark,
     marginBottom: 4,
   },
-
   userEmail: {
     fontSize: fonts.size.small,
     fontFamily: fonts.family.regular,
@@ -352,31 +334,26 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.08,
         shadowRadius: 8,
       },
-      android: {
-        elevation: 2,
-      },
+      android: { elevation: 2 },
     }),
   },
-
   pointsHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
   },
-
   pointsLabel: {
     fontSize: fonts.size.body,
     fontFamily: fonts.family.regular,
     color: colors.textDark,
+    marginBottom: 4,
   },
-
   pointsValue: {
     fontSize: fonts.size.h2,
     fontFamily: fonts.family.bold,
     color: colors.primary,
   },
-
   progressBarContainer: {
     width: "100%",
     height: 8,
@@ -385,25 +362,23 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 8,
   },
-
   progressBar: {
     height: "100%",
     backgroundColor: colors.primary,
     borderRadius: 4,
   },
-
   progressText: {
     fontSize: fonts.size.small,
     fontFamily: fonts.family.regular,
     color: colors.textMuted,
     textAlign: "center",
+    marginBottom: 12,
   },
 
   // ========== SETTINGS SECTION ==========
   settingsSection: {
     marginBottom: 28,
   },
-
   sectionTitle: {
     fontSize: fonts.size.body,
     fontFamily: fonts.family.semibold,
@@ -421,7 +396,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginBottom: 12,
   },
-
   logoutButtonText: {
     marginLeft: 10,
     fontSize: fonts.size.body,
@@ -441,7 +415,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#FFD699",
   },
-
   resetButtonText: {
     marginLeft: 10,
     fontSize: fonts.size.body,
