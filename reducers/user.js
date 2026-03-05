@@ -16,9 +16,11 @@ const userSlice = createSlice({
     },
     setToken: (state, action) => {
       state.token = action.payload;
+      console.log("Token reducer =>", state.token);
     },
     setPreferences: (state, action) => {
       state.preferences = action.payload;
+      console.log("Preferences reducer =>", state.preferences);
     },
     setHasOnboarded: (state) => {
       state.hasOnboarded = true;

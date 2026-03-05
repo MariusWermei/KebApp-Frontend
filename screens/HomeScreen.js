@@ -71,7 +71,7 @@ export default function HomeScreen() {
     }
 
     fetchData();
-  }, []);
+  }, [token, preferences]);
 
   const toggleTag = (tag) => {
     // tag = le tag sur lequel l'utilisateur vient de cliquer (ex: "halal")
