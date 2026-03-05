@@ -24,7 +24,6 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 // ==================== COMPONENTS ====================
 
-/** Carte Points avec barre de progression */
 function PointsCard({ points = 0 }) {
   const nextRewardAt = 2000;
   const progress = Math.min(points / nextRewardAt, 1);
@@ -32,18 +31,13 @@ function PointsCard({ points = 0 }) {
 
   return (
     <View style={styles.pointsCard}>
-      {/* Header: Label + Valeur */}
       <View style={styles.pointsHeader}>
         <Text style={styles.pointsLabel}>Points</Text>
         <Text style={styles.pointsValue}>{points}</Text>
       </View>
-
-      {/* Barre de progression */}
       <View style={styles.progressBarContainer}>
         <View style={[styles.progressBar, { width: `${percentageText}%` }]} />
       </View>
-
-      {/* Texte progression */}
       <Text style={styles.progressText}>
         {percentageText}% vers votre prochaine récompense
       </Text>
@@ -61,8 +55,6 @@ export default function ProfileScreen() {
   const email = useSelector((state) => state.user.email);
   const points = useSelector((state) => state.user.points) ?? 0;
   const avatar = useSelector((state) => state.user.avatar);
-
-  console.log("📊 ProfileScreen Redux:", { username, email, points, avatar });
 
   const handleEditProfile = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -82,11 +74,7 @@ export default function ProfileScreen() {
 
     const uri = result.assets[0].uri;
     const formData = new FormData();
-    formData.append("avatar", {
-      uri,
-      type: "image/jpeg",
-      name: "avatar.jpg",
-    });
+    formData.append("avatar", { uri, type: "image/jpeg", name: "avatar.jpg" });
 
     try {
       const response = await fetch(`${API_URL}/users/avatar`, {
@@ -106,16 +94,13 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
-  };
+  const handleLogout = () => dispatch(logout());
 
   const handleSettingPress = (routeName) => {
-    console.log(`Navigation vers ${routeName}`);
-    // navigation.navigate(routeName);
+    navigation.navigate(routeName);
   };
 
-  // Si l'utilisateur n'est pas connecté
+  // ========== VUE DÉCONNECTÉE ==========
   if (!token) {
     return (
       <View style={styles.container}>
@@ -128,14 +113,12 @@ export default function ProfileScreen() {
         <Text style={styles.subtitle}>
           Connecte-toi pour accéder à ton profil et tes commandes.
         </Text>
-
         <Button
           title="Se connecter"
           onPress={() =>
             navigation.navigate("SignIn", { fromOnboarding: false })
           }
         />
-
         <TouchableOpacity
           style={styles.signupLink}
           onPress={() =>
@@ -151,20 +134,19 @@ export default function ProfileScreen() {
     );
   }
 
-  // Calcul de l'initial du username
   const initial = username ? username[0].toUpperCase() : "?";
 
-  // Si l'utilisateur est connecté
+  // ========== VUE CONNECTÉE ==========
   return (
     <SafeAreaView style={styles.connectedContainer}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ========== TITRE ========== */}
+        {/* TITRE */}
         <Text style={styles.headerTitle}>Profil</Text>
 
-        {/* ========== AVATAR SECTION ========== */}
+        {/* AVATAR */}
         <View style={styles.avatarSection}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatarPlaceholder}>
@@ -174,8 +156,6 @@ export default function ProfileScreen() {
                 <Text style={styles.avatarText}>{initial}</Text>
               )}
             </View>
-
-            {/* Bouton edit */}
             <TouchableOpacity
               style={styles.editButton}
               onPress={handleEditProfile}
@@ -184,18 +164,16 @@ export default function ProfileScreen() {
               <Feather name="edit-2" size={14} color={colors.backgroundLight} />
             </TouchableOpacity>
           </View>
-
-          {/* Nom + Email */}
           <Text style={styles.userName}>{username}</Text>
           <Text style={styles.userEmail}>{email}</Text>
         </View>
 
-        {/* ========== POINTS CARD ========== */}
+        {/* POINTS */}
         <PointsCard points={points} />
 
-        {/* ========== RÉGLAGES SECTION ========== */}
+        {/* ========== SECTION FAVORIS & PRÉFÉRENCES ========== */}
         <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>Réglages</Text>
+          <Text style={styles.sectionTitle}>Favoris & Préférences</Text>
 
           <SettingRow
             icon="heart-outline"
@@ -203,6 +181,18 @@ export default function ProfileScreen() {
             iconColor={colors.primary}
             onPress={() => handleSettingPress("Favorites")}
           />
+
+          <SettingRow
+            icon="options-outline"
+            label="Préférences alimentaires"
+            iconColor={colors.primary}
+            onPress={() => handleSettingPress("Preferences")}
+          />
+        </View>
+
+        {/* ========== SECTION RÉGLAGES ========== */}
+        <View style={styles.settingsSection}>
+          <Text style={styles.sectionTitle}>Réglages</Text>
 
           <SettingRow
             icon="card-outline"
@@ -226,7 +216,7 @@ export default function ProfileScreen() {
           />
         </View>
 
-        {/* ========== DÉCONNEXION BUTTON ========== */}
+        {/* DÉCONNEXION */}
         <TouchableOpacity
           style={styles.logoutButton}
           onPress={handleLogout}
@@ -236,7 +226,7 @@ export default function ProfileScreen() {
           <Text style={styles.logoutButtonText}>Déconnexion</Text>
         </TouchableOpacity>
 
-        {/* ========== RESET BUTTON (DEV) ========== */}
+        {/* RESET (DEV) */}
         <TouchableOpacity
           style={styles.resetButton}
           onPress={async () => {
@@ -249,7 +239,6 @@ export default function ProfileScreen() {
           <Text style={styles.resetButtonText}>RESET (dev)</Text>
         </TouchableOpacity>
 
-        {/* ========== FOOTER ========== */}
         <Text style={styles.footer}>Kebapp v1.0.0 • Built with love</Text>
       </ScrollView>
     </SafeAreaView>
@@ -257,7 +246,7 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  // ========== CONTAINER (DÉCONNECTÉ) ==========
+  // DÉCONNECTÉ
   container: {
     flex: 1,
     backgroundColor: colors.backgroundLight,
@@ -280,9 +269,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 30,
   },
-  signupLink: {
-    marginTop: 18,
-  },
+  signupLink: { marginTop: 18 },
   signupText: {
     fontFamily: fonts.family.regular,
     fontSize: fonts.size.small,
@@ -293,18 +280,15 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // ========== CONTAINER (CONNECTÉ) ==========
-  connectedContainer: {
-    flex: 1,
-    backgroundColor: "#F6F7FB",
-  },
+  // CONNECTÉ
+  connectedContainer: { flex: 1, backgroundColor: "#F6F7FB" },
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 12,
     paddingBottom: 40,
   },
 
-  // ========== HEADER TITLE ==========
+  // HEADER
   headerTitle: {
     fontSize: fonts.size.h3,
     fontFamily: fonts.family.semibold,
@@ -313,15 +297,9 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
 
-  // ========== AVATAR SECTION ==========
-  avatarSection: {
-    alignItems: "center",
-    marginBottom: 32,
-  },
-  avatarContainer: {
-    position: "relative",
-    marginBottom: 12,
-  },
+  // AVATAR
+  avatarSection: { alignItems: "center", marginBottom: 32 },
+  avatarContainer: { position: "relative", marginBottom: 12 },
   avatarPlaceholder: {
     width: 120,
     height: 120,
@@ -333,11 +311,7 @@ const styles = StyleSheet.create({
     borderColor: "#FFDCC9",
     overflow: "hidden",
   },
-  avatarImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
+  avatarImage: { width: 120, height: 120, borderRadius: 60 },
   avatarText: {
     fontSize: 42,
     fontFamily: fonts.family.bold,
@@ -375,7 +349,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 
-  // ========== POINTS CARD ==========
+  // POINTS
   pointsCard: {
     backgroundColor: colors.backgroundLight,
     borderRadius: 16,
@@ -401,7 +375,6 @@ const styles = StyleSheet.create({
     fontSize: fonts.size.body,
     fontFamily: fonts.family.regular,
     color: colors.textDark,
-    marginBottom: 4,
   },
   pointsValue: {
     fontSize: fonts.size.h2,
@@ -429,10 +402,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  // ========== SETTINGS SECTION ==========
-  settingsSection: {
-    marginBottom: 28,
-  },
+  // SECTIONS
+  settingsSection: { marginBottom: 28 },
   sectionTitle: {
     fontSize: fonts.size.body,
     fontFamily: fonts.family.semibold,
@@ -440,7 +411,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  // ========== LOGOUT BUTTON ==========
+  // LOGOUT
   logoutButton: {
     flexDirection: "row",
     justifyContent: "center",
@@ -457,7 +428,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // ========== RESET BUTTON (DEV) ==========
+  // RESET
   resetButton: {
     flexDirection: "row",
     justifyContent: "center",
@@ -476,7 +447,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // ========== FOOTER ==========
+  // FOOTER
   footer: {
     fontSize: fonts.size.caption,
     fontFamily: fonts.family.regular,
