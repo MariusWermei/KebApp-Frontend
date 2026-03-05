@@ -4,7 +4,7 @@ import fonts from "../constants/fonts";
 
 const FILTERS = [
   "halal",
-  "🍗 poulet",
+  "poulet",
   "agneau",
   "veau",
   "mixte",
