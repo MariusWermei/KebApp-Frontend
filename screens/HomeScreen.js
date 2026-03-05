@@ -27,7 +27,6 @@ export default function HomeScreen() {
   const token = useSelector((state) => state.user.token);
   const preferences = useSelector((state) => state.user.preferences);
 
-  const [search, setSearch] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
@@ -35,28 +34,31 @@ export default function HomeScreen() {
 
   useEffect(() => {
     async function fetchData() {
-      console.log(preferences);
-      // 1. Récupérer la position de l'utilisateur
+      // 1. Récupérer la position
       const locationStr = await AsyncStorage.getItem("userLocation");
-      console.log("Location stockée :", locationStr);
       const userCoords = locationStr ? JSON.parse(locationStr) : null;
       setCoords(userCoords);
 
-      // 2. Construire l'URL restaurants (avec ou sans géoloc)
+      // 2. Fetch restaurants (avec tags si sélectionnés)
       let restaurantsUrl = `${API_URL}/restaurants?limit=10`;
+
+      if (selectedTags.length > 0) {
+        restaurantsUrl = `${API_URL}/restaurants?tags=${selectedTags.join(",")}`;
+        // Pas de limit quand on filtre — on veut tous les résultats
+      }
+
       if (userCoords) {
         restaurantsUrl += `&latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
       }
 
-      // 3. Fetch restaurants
       const restoResponse = await fetch(restaurantsUrl);
       const restoData = await restoResponse.json();
       if (restoData.result) {
         setRestaurants(restoData.restaurants);
       }
 
-      // 4. Fetch recommandations (seulement si connecté + préférences)
-      if (token && preferences.length > 0) {
+      // 3. Fetch recommandations (seulement si PAS de tags sélectionnés + connecté + préférences)
+      if (selectedTags.length === 0 && token && preferences.length > 0) {
         let recoUrl = `${API_URL}/restaurants/recommendations?tags=${preferences.join(",")}&limit=10`;
         if (userCoords) {
           recoUrl += `&latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
@@ -71,7 +73,7 @@ export default function HomeScreen() {
     }
 
     fetchData();
-  }, []);
+  }, [selectedTags]);
 
   const toggleTag = (tag) => {
     // tag = le tag sur lequel l'utilisateur vient de cliquer (ex: "halal")
@@ -124,73 +126,99 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Section Recommandations */}
-        <Text style={styles.recommandationsTitle}>Recommandations</Text>
+        {selectedTags.length > 0 ? (
+          // MODE FILTRE : compteur + bouton reset + liste verticale
+          <>
+            <View style={styles.filterHeader}>
+              <Text style={styles.counterText}>
+                {restaurants.length} résultats
+              </Text>
+              <TouchableOpacity onPress={() => setSelectedTags([])}>
+                <Text style={styles.resetText}>Réinitialiser</Text>
+              </TouchableOpacity>
+            </View>
 
-        {token && preferences.length > 0 ? (
-          // L'utilisateur est connecté ET a des préférences → on affiche les recos
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.carouselContent}
-          >
-            {recommendations.map((restaurant) => (
+            {restaurants.map((restaurant) => (
               <RestaurantCard
                 key={restaurant._id}
                 restaurant={restaurant}
-                variant="horizontal"
-                onPress={() => {
+                variant="vertical"
+                onPress={() =>
                   navigation.navigate("Restaurant", {
                     restaurantName: restaurant.name,
-                  });
-                }}
-                preferences={preferences}
+                  })
+                }
               />
             ))}
-          </ScrollView>
+          </>
         ) : (
-          // L'utilisateur n'est pas connecté OU n'a pas de préférences → message
-          <View style={styles.recoMessage}>
-            <Ionicons
-              name="sparkles-outline"
-              size={28}
-              color={colors.textLight}
-            />
-            <Text style={styles.recoMessageText}>
-              Connecte-toi et choisis tes préférences pour recevoir des
-              recommandations personnalisées.
-            </Text>
-          </View>
+          // MODE NORMAL : recommandations + carousel restaurants
+          <>
+            <Text style={styles.recommandationsTitle}>Recommandations</Text>
+
+            {token && preferences.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.carouselContent}
+              >
+                {recommendations.map((restaurant) => (
+                  <RestaurantCard
+                    key={restaurant._id}
+                    restaurant={restaurant}
+                    variant="horizontal"
+                    onPress={() =>
+                      navigation.navigate("Restaurant", {
+                        restaurantName: restaurant.name,
+                      })
+                    }
+                    preferences={preferences}
+                  />
+                ))}
+              </ScrollView>
+            ) : (
+              <View style={styles.recoMessage}>
+                <Ionicons
+                  name="sparkles-outline"
+                  size={28}
+                  color={colors.textLight}
+                />
+                <Text style={styles.recoMessageText}>
+                  Connecte-toi et choisis tes préférences pour recevoir des
+                  recommandations personnalisées.
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.sectionHeader}>
+              <Text style={styles.recommandationsTitle}>Restaurants</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("RestaurantsList")}
+              >
+                <Text style={styles.seeAll}>tout voir</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.carouselContent}
+            >
+              {restaurants.map((restaurant) => (
+                <RestaurantCard
+                  key={restaurant._id}
+                  restaurant={restaurant}
+                  variant="horizontal"
+                  onPress={() =>
+                    navigation.navigate("Restaurant", {
+                      restaurantName: restaurant.name,
+                    })
+                  }
+                />
+              ))}
+            </ScrollView>
+          </>
         )}
-
-        {/* Section Restaurants */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.recommandationsTitle}>Restaurants</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("RestaurantsList")}
-          >
-            <Text style={styles.seeAll}>tout voir</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.carouselContent}
-        >
-          {restaurants.map((restaurant) => (
-            <RestaurantCard
-              key={restaurant._id}
-              restaurant={restaurant}
-              variant="horizontal"
-              onPress={() => {
-                navigation.navigate("Restaurant", {
-                  restaurantName: restaurant.name,
-                });
-              }}
-            />
-          ))}
-        </ScrollView>
       </ScrollView>
     </SafeAreaView>
   );
@@ -270,5 +298,21 @@ const styles = StyleSheet.create({
   },
   carouselContent: {
     paddingRight: 20,
+  },
+  filterHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  counterText: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.body,
+    color: colors.textDark,
+  },
+  resetText: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.small,
+    color: colors.primary,
   },
 });
