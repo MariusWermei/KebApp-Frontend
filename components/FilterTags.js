@@ -3,7 +3,6 @@ import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 
 const FILTERS = [
-  "halal",
   "poulet",
   "agneau",
   "veau",

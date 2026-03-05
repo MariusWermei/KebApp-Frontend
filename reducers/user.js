@@ -27,7 +27,6 @@ const userSlice = createSlice({
     logout: (state) => {
       state.token = null;
       console.log("Token reducer =>", state.token);
-      state.preferences = [];
       // On ne reset PAS hasOnboarded — même après un logout,
       // l'utilisateur ne doit pas revoir l'onboarding
     },

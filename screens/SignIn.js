@@ -66,8 +66,6 @@ export default function LoginScreen() {
             index: 0,
             routes: [{ name: "OnboardingPreferences" }],
           });
-        } else {
-          navigation.goBack();
         }
       } else {
         Alert.alert("Erreur", data.error || "Connexion impossible");
