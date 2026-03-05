@@ -20,10 +20,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // ==================== COMPONENTS ====================
 
 /** Carte Points avec barre de progression */
-function PointsCard({ points = 1250 }) {
-  const nextRewardAt = 2000; // MVP: récompense à 2000 points
+function PointsCard({ points = 0 }) {
+  const nextRewardAt = 2000;
   const progress = Math.min(points / nextRewardAt, 1);
-  const percentageText = Math.round(progress * 100);
+  const percentageText = Math.floor(progress * 100); // 👈 floor pour éviter arrondi à 100%
 
   return (
     <View style={styles.pointsCard}>
@@ -55,6 +55,8 @@ export default function ProfileScreen() {
   const username = useSelector((state) => state.user.username);
   const email = useSelector((state) => state.user.email);
   const points = useSelector((state) => state.user.points) ?? 0;
+
+  console.log("📊 ProfileScreen Redux:", { username, email, points });
 
   const handleEditProfile = () => {
     // TODO: Navigation vers écran d'édition profil

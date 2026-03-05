@@ -55,8 +55,9 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (data.result) {
+        console.log("🔍 Backend retourne:", data.user); // Vérifie les points ici
         dispatch(setToken(data.token));
-        dispatch(setUser(data.user)); // 👈 Passe tout l'objet, pas juste le username
+        dispatch(setUser(data.user)); // Passe tout l'objet, pas juste le username
         fromOnboarding
           ? navigation.replace("OnboardingPreferences")
           : navigation.goBack();
