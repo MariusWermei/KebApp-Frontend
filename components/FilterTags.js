@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
   container: {
     gap: 8,
     paddingVertical: 8,
+    marginTop: 10,
   },
   tag: {
     borderWidth: 1,

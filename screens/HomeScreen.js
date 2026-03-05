@@ -35,6 +35,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     async function fetchData() {
+      console.log(preferences);
       // 1. Récupérer la position de l'utilisateur
       const locationStr = await AsyncStorage.getItem("userLocation");
       console.log("Location stockée :", locationStr);
@@ -115,12 +116,55 @@ export default function HomeScreen() {
         {/* FilterTags */}
         <FilterTags selected={selectedTags} onToggle={toggleTag} />
 
-        <Text>Aperçu Map ici</Text>
-        <Text>Recommandations ici</Text>
+        <TouchableOpacity
+          style={styles.mapPreview}
+          onPress={() => navigation.navigate("Map")}
+          activeOpacity={0.8}
+        >
+          <View style={styles.mapOverlay}>
+            <Ionicons name="map-outline" size={22} color={colors.textWhite} />
+            <Text style={styles.mapOverlayText}>APERÇU DE MAP</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Section Recommandations */}
+        <Text style={styles.recommandationsTitle}>Recommandations</Text>
+
+        {token && preferences.length > 0 ? (
+          // L'utilisateur est connecté ET a des préférences → on affiche les recos
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.carouselContent}
+          >
+            {recommendations.map((restaurant) => (
+              <RestaurantCard
+                key={restaurant._id}
+                restaurant={restaurant}
+                variant="horizontal"
+                onPress={() => {}}
+                preferences={preferences}
+              />
+            ))}
+          </ScrollView>
+        ) : (
+          // L'utilisateur n'est pas connecté OU n'a pas de préférences → message
+          <View style={styles.recoMessage}>
+            <Ionicons
+              name="sparkles-outline"
+              size={28}
+              color={colors.textLight}
+            />
+            <Text style={styles.recoMessageText}>
+              Connecte-toi et choisis tes préférences pour recevoir des
+              recommandations personnalisées.
+            </Text>
+          </View>
+        )}
 
         {/* Section Restaurants */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Restaurants</Text>
+          <Text style={styles.recommandationsTitle}>Restaurants</Text>
           <TouchableOpacity
             onPress={() => navigation.navigate("RestaurantsList")}
           >
@@ -173,6 +217,29 @@ const styles = StyleSheet.create({
     fontSize: fonts.size.body,
     color: colors.textDark,
   },
+  mapPreview: {
+    height: 160,
+    borderRadius: 14,
+    backgroundColor: colors.backgroundDark,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 16,
+    marginBottom: 36,
+  },
+  mapOverlay: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    gap: 8,
+  },
+  mapOverlayText: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.small,
+    color: colors.textWhite,
+  },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -180,10 +247,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 12,
   },
-  sectionTitle: {
+  restaurantTitle: {
     fontFamily: fonts.family.bold,
     fontSize: fonts.size.h3,
     color: colors.textDark,
+  },
+  recommandationsTitle: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.h3,
+    color: colors.textDark,
+    marginBottom: 12,
   },
   seeAll: {
     fontFamily: fonts.family.bold,

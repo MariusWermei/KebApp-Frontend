@@ -3,7 +3,12 @@ import { Ionicons } from "@expo/vector-icons";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 
-export default function RestaurantCard({ restaurant, variant, onPress }) {
+export default function RestaurantCard({
+  restaurant,
+  variant,
+  onPress,
+  preferences = [],
+}) {
   const isHorizontal = variant === "horizontal";
   const formattedDistance = restaurant.distance
     ? restaurant.distance < 1000
@@ -62,12 +67,16 @@ export default function RestaurantCard({ restaurant, variant, onPress }) {
 
         {/* Tags preview */}
         <View style={styles.tagsRow}>
-          {restaurant.tags &&
-            restaurant.tags.slice(0, 3).map((tag) => (
-              <View key={tag} style={styles.tagChip}>
-                <Text style={styles.tagChipText}>{tag}</Text>
-              </View>
-            ))}
+          {(preferences.length > 0
+            ? // Si on a des préférences → afficher seulement les tags qui matchent
+              restaurant.tags.filter((tag) => preferences.includes(tag))
+            : // Sinon → afficher les 3 premiers tags du restaurant
+              restaurant.tags.slice(0, 3)
+          ).map((tag) => (
+            <View key={tag} style={styles.tagChip}>
+              <Text style={styles.tagChipText}>{tag}</Text>
+            </View>
+          ))}
         </View>
       </View>
     </TouchableOpacity>
