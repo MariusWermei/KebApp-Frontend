@@ -44,31 +44,45 @@ export default function HomeScreen() {
 
       if (selectedTags.length > 0) {
         restaurantsUrl = `${API_URL}/restaurants?tags=${selectedTags.join(",")}`;
-        // Pas de limit quand on filtre — on veut tous les résultats
       }
 
       if (userCoords) {
         restaurantsUrl += `&latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
       }
 
+      console.log("🔍 Fetching restaurants from:", restaurantsUrl);
       const restoResponse = await fetch(restaurantsUrl);
       const restoData = await restoResponse.json();
+      console.log("✅ Restaurants response:", restoData);
       if (restoData.result) {
         setRestaurants(restoData.restaurants);
       }
 
       // 3. Fetch recommandations (seulement si PAS de tags sélectionnés + connecté + préférences)
+      console.log("📊 Check recommendations:", {
+        selectedTags: selectedTags.length,
+        token: !!token,
+        preferences: preferences.length,
+      });
+
       if (selectedTags.length === 0 && token && preferences.length > 0) {
         let recoUrl = `${API_URL}/restaurants/recommendations?tags=${preferences.join(",")}&limit=10`;
         if (userCoords) {
           recoUrl += `&latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
         }
 
+        console.log("🚀 Fetching recommendations from:", recoUrl);
         const recoResponse = await fetch(recoUrl);
         const recoData = await recoResponse.json();
+        console.log("✅ Recommendations response:", recoData);
         if (recoData.result) {
           setRecommendations(recoData.restaurants);
+          console.log("📌 Recommendations set:", recoData.restaurants);
+        } else {
+          console.log("❌ Recommendations error:", recoData.error);
         }
+      } else {
+        console.log("⏭️ Skipping recommendations (conditions not met)");
       }
     }
 
