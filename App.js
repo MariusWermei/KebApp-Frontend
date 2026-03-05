@@ -99,11 +99,8 @@ function AppNavigator() {
           <Stack.Screen name="Main" component={TabNavigator} />
           <Stack.Screen name="SignIn" component={SignIn} />
           <Stack.Screen name="SignUp" component={SignUp} />
-<<<<<<< HEAD
           <Stack.Screen name="RestaurantsList" component={RestaurantsList} />
-=======
           <Stack.Screen name="Restaurant" component={RestaurantScreen} />
->>>>>>> c5b33cae76d8ce90e04d22c36f6889e189e7f06b
         </>
       ) : (
         <>
