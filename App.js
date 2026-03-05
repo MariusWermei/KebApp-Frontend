@@ -22,8 +22,10 @@ import { persistStore, persistReducer } from "redux-persist";
 import { PersistGate } from "redux-persist/integration/react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import user from "./reducers/user";
+import cart from "./reducers/cart";
 
 // Screens
+import RestaurantScreen from "./screens/RestaurantScreen";
 import HomeScreen from "./screens/HomeScreen";
 import MapScreen from "./screens/MapScreen";
 import CommandesScreen from "./screens/CommandesScreen";
@@ -44,7 +46,7 @@ const persistConfig = {
 
 const persistedReducer = persistReducer(
   persistConfig,
-  combineReducers({ user }),
+  combineReducers({ user, cart }),
 );
 
 const store = configureStore({
@@ -97,7 +99,11 @@ function AppNavigator() {
           <Stack.Screen name="Main" component={TabNavigator} />
           <Stack.Screen name="SignIn" component={SignIn} />
           <Stack.Screen name="SignUp" component={SignUp} />
+<<<<<<< HEAD
           <Stack.Screen name="RestaurantsList" component={RestaurantsList} />
+=======
+          <Stack.Screen name="Restaurant" component={RestaurantScreen} />
+>>>>>>> c5b33cae76d8ce90e04d22c36f6889e189e7f06b
         </>
       ) : (
         <>

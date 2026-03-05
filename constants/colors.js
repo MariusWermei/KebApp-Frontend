@@ -1,6 +1,6 @@
 const colors = {
   // --- Couleurs principales (UI Kit) ---
-  primary: "#F07E31", // Main — boutons, éléments actifs, tab bar
+  primary: "#E8572A", // Main — boutons, éléments actifs, tab bar
   secondary: "#FF8D28", // Secondary — accents, dégradés
 
   // --- Backgrounds ---
