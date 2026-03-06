@@ -6,7 +6,6 @@ const userSlice = createSlice({
     token: null,
     username: null,
     email: null,
-    points: 0,
     avatar: null,
     preferences: [],
     hasOnboarded: false,
@@ -16,7 +15,6 @@ const userSlice = createSlice({
       console.log("Reducer setUser reçoit:", action.payload);
       state.username = action.payload.username;
       state.email = action.payload.email;
-      state.points = action.payload.points;
       state.avatar = action.payload.avatar;
     },
     setToken: (state, action) => {

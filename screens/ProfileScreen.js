@@ -9,6 +9,7 @@ import {
   Image,
   Alert,
 } from "react-native";
+import { useState, useEffect } from "react";
 import { logout, resetOnboarding, setUser } from "../reducers/user";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
@@ -53,8 +54,32 @@ export default function ProfileScreen() {
   const token = useSelector((state) => state.user.token);
   const username = useSelector((state) => state.user.username);
   const email = useSelector((state) => state.user.email);
-  const points = useSelector((state) => state.user.points) ?? 0;
   const avatar = useSelector((state) => state.user.avatar);
+
+  const [points, setPoints] = useState(0);
+  const [loadingPoints, setLoadingPoints] = useState(false);
+
+  // 📊 Fetch points actualisés depuis la BDD
+  useEffect(() => {
+    const fetchPoints = async () => {
+      if (!token) return;
+      setLoadingPoints(true);
+      try {
+        const res = await fetch(`${API_URL}/users/points`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.result) {
+          setPoints(data.points);
+        }
+      } catch (e) {
+        console.log("❌ Erreur fetch points:", e);
+      } finally {
+        setLoadingPoints(false);
+      }
+    };
+    fetchPoints();
+  }, [token]);
 
   const handleEditProfile = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -85,7 +110,7 @@ export default function ProfileScreen() {
 
       const data = await response.json();
       if (data.result) {
-        dispatch(setUser({ username, email, points, avatar: data.avatar }));
+        dispatch(setUser({ username, email, avatar: data.avatar }));
       } else {
         Alert.alert("Erreur", data.error || "Upload impossible");
       }

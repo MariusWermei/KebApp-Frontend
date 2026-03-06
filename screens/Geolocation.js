@@ -6,10 +6,12 @@ import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 
 import { useDispatch } from "react-redux";
+import { useRef } from "react";
 import { setHasOnboarded } from "../reducers/user";
 
 export default function Geolocation({ navigation }) {
   const dispatch = useDispatch();
+  const locationSubscriptionRef = useRef(null);
 
   const handleContinue = async () => {
     const result = await Location.requestForegroundPermissionsAsync();
@@ -18,11 +20,18 @@ export default function Geolocation({ navigation }) {
     await AsyncStorage.setItem("locationPermission", status || "unknown");
 
     if (status === "granted") {
-      const location = await Location.getCurrentPositionAsync({});
-
-      await AsyncStorage.setItem(
-        "userLocation",
-        JSON.stringify(location.coords),
+      // Mettre à jour la géolocalisation tous les 10 mètres
+      locationSubscriptionRef.current = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          distanceInterval: 10, // 10 mètres
+        },
+        async (location) => {
+          await AsyncStorage.setItem(
+            "userLocation",
+            JSON.stringify(location.coords),
+          );
+        },
       );
     } else {
       await AsyncStorage.removeItem("userLocation");
