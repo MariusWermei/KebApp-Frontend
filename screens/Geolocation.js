@@ -20,11 +20,20 @@ export default function Geolocation({ navigation }) {
     await AsyncStorage.setItem("locationPermission", status || "unknown");
 
     if (status === "granted") {
-      // Mettre à jour la géolocalisation tous les 10 mètres
+      // 1. Récupérer la position MAINTENANT (attend le résultat)
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      await AsyncStorage.setItem(
+        "userLocation",
+        JSON.stringify(location.coords),
+      );
+
+      // 2. Mettre en place le watcher pour les mises à jour futures
       locationSubscriptionRef.current = await Location.watchPositionAsync(
         {
-          accuracy: Location.Accuracy.High,
-          distanceInterval: 10, // 10 mètres
+          accuracy: Location.Accuracy.Balanced,
+          distanceInterval: 10,
         },
         async (location) => {
           await AsyncStorage.setItem(
@@ -38,11 +47,19 @@ export default function Geolocation({ navigation }) {
     }
 
     dispatch(setHasOnboarded());
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Main" }],
+    });
   };
 
   const handleSkip = async () => {
     await AsyncStorage.setItem("locationPermission", "denied");
     dispatch(setHasOnboarded());
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Main" }],
+    });
   };
 
   return (

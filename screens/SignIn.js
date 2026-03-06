@@ -77,10 +77,6 @@ export default function LoginScreen() {
     }
   };
 
-  const handleClose = () => {
-    fromOnboarding ? navigation.replace("Geolocation") : navigation.goBack();
-  };
-
   const handleForgotPassword = () => {
     Alert.alert("Info", "À implémenter : reset password");
   };
@@ -112,12 +108,11 @@ export default function LoginScreen() {
           <View style={styles.canvas}>
             {/* Card */}
             <View style={styles.card}>
-              <TouchableOpacity style={styles.closeWrap} onPress={handleClose}>
-                {fromOnboarding ? (
-                  <Text style={styles.skip}>Skip</Text>
-                ) : (
-                  <Ionicons name="close" size={24} color={colors.textDark} />
-                )}
+              <TouchableOpacity
+                style={styles.closeWrap}
+                onPress={() => navigation.goBack()}
+              >
+                <Ionicons name="close" size={24} color={colors.textDark} />
               </TouchableOpacity>
 
               <View style={styles.iconWrap}>
@@ -219,14 +214,18 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Bottom */}
               {fromOnboarding && (
-                <View style={styles.bottomRow}>
-                  <Text style={styles.bottomText}>Don't have an account? </Text>
-                  <TouchableOpacity onPress={goToSignup}>
-                    <Text style={styles.bottomLink}>Sign Up</Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  style={styles.bottomRow}
+                  onPress={() => navigation.goBack()}
+                >
+                  <Ionicons
+                    name="arrow-back"
+                    size={18}
+                    color={colors.textMuted}
+                  />
+                  <Text style={styles.bottomText}> Back to Sign Up</Text>
+                </TouchableOpacity>
               )}
             </View>
           </View>
@@ -388,7 +387,7 @@ const styles = StyleSheet.create({
   },
   bottomText: {
     color: colors.textMuted,
-    fontFamily: fonts.family.semibold,
+    fontFamily: fonts.family.bold,
   },
   bottomLink: {
     color: colors.primary,

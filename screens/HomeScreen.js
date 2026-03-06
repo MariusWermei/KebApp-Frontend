@@ -27,6 +27,7 @@ export default function HomeScreen() {
   const token = useSelector((state) => state.user.token);
   const preferences = useSelector((state) => state.user.preferences);
 
+  const [search, setSearch] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
@@ -38,12 +39,21 @@ export default function HomeScreen() {
       const locationStr = await AsyncStorage.getItem("userLocation");
       const userCoords = locationStr ? JSON.parse(locationStr) : null;
       setCoords(userCoords);
+      console.log("COORDONNES DE L'UTILISATEUR =>>", userCoords);
 
-      // 2. Fetch restaurants (avec tags si sélectionnés)
+      // 2. Fetch restaurants
       let restaurantsUrl = `${API_URL}/restaurants?limit=10`;
 
+      if (search.trim()) {
+        restaurantsUrl = `${API_URL}/restaurants?search=${search.trim()}`;
+        // Pas de limit quand on cherche — on veut tous les résultats
+      }
+
       if (selectedTags.length > 0) {
-        restaurantsUrl = `${API_URL}/restaurants?tags=${selectedTags.join(",")}`;
+        // Si on a déjà un search, on ajoute les tags avec &
+        // Sinon on commence les params avec ?
+        const separator = restaurantsUrl.includes("?") ? "&" : "?";
+        restaurantsUrl += `${separator}tags=${selectedTags.join(",")}`;
       }
 
       if (userCoords) {
@@ -53,7 +63,6 @@ export default function HomeScreen() {
       console.log("🔍 Fetching restaurants from:", restaurantsUrl);
       const restoResponse = await fetch(restaurantsUrl);
       const restoData = await restoResponse.json();
-      console.log("✅ Restaurants response:", restoData);
       if (restoData.result) {
         setRestaurants(restoData.restaurants);
       }
@@ -65,7 +74,12 @@ export default function HomeScreen() {
         preferences: preferences.length,
       });
 
-      if (selectedTags.length === 0 && token && preferences.length > 0) {
+      if (
+        selectedTags.length === 0 &&
+        !search.trim() &&
+        token &&
+        preferences.length > 0
+      ) {
         let recoUrl = `${API_URL}/restaurants/recommendations?tags=${preferences.join(",")}&limit=10`;
         if (userCoords) {
           recoUrl += `&latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
@@ -74,10 +88,9 @@ export default function HomeScreen() {
         console.log("🚀 Fetching recommendations from:", recoUrl);
         const recoResponse = await fetch(recoUrl);
         const recoData = await recoResponse.json();
-        console.log("✅ Recommendations response:", recoData);
+
         if (recoData.result) {
           setRecommendations(recoData.restaurants);
-          console.log("📌 Recommendations set:", recoData.restaurants);
         } else {
           console.log("❌ Recommendations error:", recoData.error);
         }
@@ -87,7 +100,7 @@ export default function HomeScreen() {
     }
 
     fetchData();
-  }, [token, preferences, selectedTags]);
+  }, [token, preferences, selectedTags, search]);
 
   const toggleTag = (tag) => {
     // tag = le tag sur lequel l'utilisateur vient de cliquer (ex: "halal")
@@ -126,6 +139,9 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* SearchBar */}
+        <SearchBar value={search} onChangeText={setSearch} />
+
         {/* FilterTags */}
         <FilterTags selected={selectedTags} onToggle={toggleTag} />
 
@@ -140,14 +156,21 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {selectedTags.length > 0 ? (
+        {selectedTags.length > 0 || search.trim() ? (
           // MODE FILTRE : compteur + bouton reset + liste verticale
           <>
             <View style={styles.filterHeader}>
               <Text style={styles.counterText}>
-                {restaurants.length} résultats
+                {search.trim()
+                  ? `Résultats pour "${search.trim()}"`
+                  : `${restaurants.length} résultats`}
               </Text>
-              <TouchableOpacity onPress={() => setSelectedTags([])}>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedTags([]);
+                  setSearch("");
+                }}
+              >
                 <Text style={styles.resetText}>Réinitialiser</Text>
               </TouchableOpacity>
             </View>

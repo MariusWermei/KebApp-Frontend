@@ -21,7 +21,10 @@ export default function OnboardingWelcome({ navigation }) {
       </Text>
 
       {/* Bouton Next */}
-      <Button title="Next →" onPress={() => navigation.navigate("SignIn", { fromOnboarding: true })} />
+      <Button
+        title="Next →"
+        onPress={() => navigation.navigate("SignUp", { fromOnboarding: true })}
+      />
     </View>
   );
 }

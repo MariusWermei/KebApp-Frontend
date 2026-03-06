@@ -99,9 +99,19 @@ export default function SignInScreen() {
         >
           <View style={styles.container}>
             <View style={styles.card}>
-              {/* Close button */}
-              <TouchableOpacity style={styles.closeBtn} onPress={goBack}>
-                <Ionicons name="close" size={24} color={colors.textDark} />
+              <TouchableOpacity
+                style={styles.closeBtn}
+                onPress={() =>
+                  fromOnboarding
+                    ? navigation.replace("Geolocation")
+                    : navigation.goBack()
+                }
+              >
+                {fromOnboarding ? (
+                  <Text style={styles.skip}>Skip</Text>
+                ) : (
+                  <Ionicons name="close" size={24} color={colors.textDark} />
+                )}
               </TouchableOpacity>
 
               {/* Logo */}
@@ -192,17 +202,16 @@ export default function SignInScreen() {
               </TouchableOpacity>
 
               {fromOnboarding && (
-                <TouchableOpacity
-                  style={styles.backRow}
-                  onPress={() => navigation.navigate("SignIn")}
-                >
-                  <Ionicons
-                    name="arrow-back"
-                    size={18}
-                    color={colors.textMuted}
-                  />
-                  <Text style={styles.backText}> Back to Sign In</Text>
-                </TouchableOpacity>
+                <View style={styles.backRow}>
+                  <Text style={styles.backText}>Already have an account? </Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate("SignIn", { fromOnboarding })
+                    }
+                  >
+                    <Text style={styles.backLink}>Sign In</Text>
+                  </TouchableOpacity>
+                </View>
               )}
 
               <Text style={styles.terms}>
@@ -231,6 +240,11 @@ const styles = StyleSheet.create({
   closeBtn: {
     flexDirection: "row",
     justifyContent: "flex-end",
+  },
+  skip: {
+    fontFamily: fonts.family.bold,
+    color: colors.primary,
+    fontSize: fonts.size.body,
   },
   logoWrap: { alignItems: "center", marginTop: 30, marginBottom: 10 },
   logoBox: {
@@ -323,6 +337,10 @@ const styles = StyleSheet.create({
     fontFamily: fonts.family.black,
     fontSize: fonts.size.body,
   },
+  backLink: {
+    color: colors.primary,
+    fontFamily: fonts.family.black,
+  },
   backRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -331,7 +349,7 @@ const styles = StyleSheet.create({
   },
   backText: {
     color: colors.textMuted,
-    fontFamily: fonts.family.bold,
+    fontFamily: fonts.family.semibold,
   },
   terms: {
     textAlign: "center",
