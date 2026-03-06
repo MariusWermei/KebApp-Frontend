@@ -58,14 +58,13 @@ export default function LoginScreen() {
         console.log("🔍 Backend retourne:", data.user); // Vérifie les points ici
         dispatch(setToken(data.token));
         dispatch(setUser(data.user)); // Passe tout l'objet, pas juste le username
-        fromOnboarding
-          ? navigation.replace("OnboardingPreferences")
-          : navigation.goBack();
         if (fromOnboarding) {
           navigation.reset({
             index: 0,
             routes: [{ name: "OnboardingPreferences" }],
           });
+        } else {
+          navigation.replace("Main");
         }
       } else {
         Alert.alert("Erreur", data.error || "Connexion impossible");
@@ -221,12 +220,14 @@ export default function LoginScreen() {
               </View>
 
               {/* Bottom */}
-              <View style={styles.bottomRow}>
-                <Text style={styles.bottomText}>Don't have an account? </Text>
-                <TouchableOpacity onPress={goToSignup}>
-                  <Text style={styles.bottomLink}>Sign Up</Text>
-                </TouchableOpacity>
-              </View>
+              {fromOnboarding && (
+                <View style={styles.bottomRow}>
+                  <Text style={styles.bottomText}>Don't have an account? </Text>
+                  <TouchableOpacity onPress={goToSignup}>
+                    <Text style={styles.bottomLink}>Sign Up</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
         </ScrollView>

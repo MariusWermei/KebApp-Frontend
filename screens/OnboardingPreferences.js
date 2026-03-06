@@ -6,6 +6,7 @@ import fonts from "../constants/fonts";
 
 import { useDispatch, useSelector } from "react-redux";
 import { setPreferences } from "../reducers/user";
+import { useRoute } from "@react-navigation/native";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -22,8 +23,10 @@ const TAGS = [
 ];
 
 export default function OnboardingPreferences({ navigation }) {
+  const route = useRoute();
   const dispatch = useDispatch();
   const token = useSelector((state) => state.user.token);
+  const fromProfile = route.params?.fromProfile ?? false;
   const [selectedTags, setSelectedTags] = useState([]);
 
   const toggleTag = (tag) => {
@@ -54,14 +57,25 @@ export default function OnboardingPreferences({ navigation }) {
       }
     }
 
-    navigation.navigate("OnboardingReady");
+    if (fromProfile) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Main" }],
+      });
+    } else {
+      navigation.navigate("OnboardingReady");
+    }
   };
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.skipButton}
-        onPress={() => navigation.navigate("Geolocation")}
+        onPress={() =>
+          fromProfile
+            ? navigation.reset({ index: 0, routes: [{ name: "Main" }] })
+            : navigation.navigate("Geolocation")
+        }
       >
         <Text style={styles.skipText}>Skip</Text>
       </TouchableOpacity>

@@ -22,7 +22,6 @@ const TAGS = [
   "agneau",
   "veau",
   "mixte",
-  "halal",
   "ouvert-tard",
   "veggie",
   "fait-maison",

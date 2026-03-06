@@ -60,17 +60,14 @@ export default function SignInScreen() {
       if (data.result) {
         dispatch(setToken(data.token));
         dispatch(setUser(data.user));
-        fromOnboarding
-          ? navigation.replace("OnboardingPreferences")
-          : navigation.goBack();
-        navigation.replace("Main");
+
         if (fromOnboarding) {
           navigation.reset({
             index: 0,
             routes: [{ name: "OnboardingPreferences" }],
           });
         } else {
-          navigation.goBack();
+          navigation.navigate("OnboardingPreferences", { fromProfile: true });
         }
       } else {
         Alert.alert("Erreur", data.error || "Connexion impossible");
@@ -194,18 +191,19 @@ export default function SignInScreen() {
                 </View>
               </TouchableOpacity>
 
-              {/* Bottom */}
-              <TouchableOpacity
-                style={styles.backRow}
-                onPress={() => navigation.navigate("SignIn")}
-              >
-                <Ionicons
-                  name="arrow-back"
-                  size={18}
-                  color={colors.textMuted}
-                />
-                <Text style={styles.backText}> Back to Sign In</Text>
-              </TouchableOpacity>
+              {fromOnboarding && (
+                <TouchableOpacity
+                  style={styles.backRow}
+                  onPress={() => navigation.navigate("SignIn")}
+                >
+                  <Ionicons
+                    name="arrow-back"
+                    size={18}
+                    color={colors.textMuted}
+                  />
+                  <Text style={styles.backText}> Back to Sign In</Text>
+                </TouchableOpacity>
+              )}
 
               <Text style={styles.terms}>
                 By signing in, you agree to our{" "}
@@ -230,7 +228,10 @@ const styles = StyleSheet.create({
     paddingVertical: 22,
     flex: 1,
   },
-  closeBtn: { position: "absolute", top: 14, left: 14, zIndex: 10 },
+  closeBtn: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
   logoWrap: { alignItems: "center", marginTop: 30, marginBottom: 10 },
   logoBox: {
     width: 64,

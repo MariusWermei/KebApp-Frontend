@@ -106,6 +106,10 @@ function AppNavigator() {
           <Stack.Screen name="Main" component={TabNavigator} />
           <Stack.Screen name="SignIn" component={SignIn} />
           <Stack.Screen name="SignUp" component={SignUp} />
+          <Stack.Screen
+            name="OnboardingPreferences"
+            component={OnboardingPreferences}
+          />
           <Stack.Screen name="RestaurantsList" component={RestaurantsList} />
           <Stack.Screen name="Restaurant" component={RestaurantScreen} />
           <Stack.Screen name="Favorites" component={FavoritesScreen} />
