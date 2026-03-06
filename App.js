@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -13,6 +13,7 @@ import {
   Poppins_900Black,
 } from "@expo-google-fonts/poppins";
 import * as SplashScreen from "expo-splash-screen";
+import * as Linking from "expo-linking";
 import colors from "./constants/colors";
 
 // Redux + Persist
@@ -37,6 +38,13 @@ import OnboardingReady from "./screens/OnboardingReady";
 import SignIn from "./screens/SignIn";
 import SignUp from "./screens/SignUp";
 import RestaurantsList from "./screens/RestaurantsList";
+import FavoritesScreen from "./screens/FavoritesScreen";
+import PreferencesEditScreen from "./screens/PreferencesEditScreen";
+import PaymentMethodScreen from "./screens/PaymentMethodScreen";
+import AddressScreen from "./screens/AddressScreen";
+import PasswordScreen from "./screens/PasswordScreen";
+import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
+import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 
 // Config redux-persist
 const persistConfig = {
@@ -88,7 +96,6 @@ function TabNavigator() {
   );
 }
 
-// Composant séparé pour accéder au store Redux avec useSelector
 function AppNavigator() {
   const hasOnboarded = useSelector((state) => state.user.hasOnboarded);
 
@@ -101,6 +108,16 @@ function AppNavigator() {
           <Stack.Screen name="SignUp" component={SignUp} />
           <Stack.Screen name="RestaurantsList" component={RestaurantsList} />
           <Stack.Screen name="Restaurant" component={RestaurantScreen} />
+          <Stack.Screen name="Favorites" component={FavoritesScreen} />
+          <Stack.Screen name="Preferences" component={PreferencesEditScreen} />
+          <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
+          <Stack.Screen name="Address" component={AddressScreen} />
+          <Stack.Screen name="ChangePassword" component={PasswordScreen} />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
+          />
+          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
         </>
       ) : (
         <>
@@ -117,6 +134,16 @@ function AppNavigator() {
           <Stack.Screen name="OnboardingReady" component={OnboardingReady} />
           <Stack.Screen name="Geolocation" component={Geolocation} />
           <Stack.Screen name="Main" component={TabNavigator} />
+          <Stack.Screen name="Favorites" component={FavoritesScreen} />
+          <Stack.Screen name="Preferences" component={PreferencesEditScreen} />
+          <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
+          <Stack.Screen name="Address" component={AddressScreen} />
+          <Stack.Screen name="ChangePassword" component={PasswordScreen} />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
+          />
+          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
         </>
       )}
     </Stack.Navigator>
@@ -124,6 +151,7 @@ function AppNavigator() {
 }
 
 export default function App() {
+  const navigationRef = useRef();
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_600SemiBold,
@@ -138,13 +166,49 @@ export default function App() {
     }
   }, [fontsLoaded]);
 
+  // 🔗 Écouter les deep links entrants
+  useEffect(() => {
+    const subscription = Linking.addEventListener("url", ({ url }) => {
+      console.log("🔗 Deep link reçu:", url);
+      const parsed = Linking.parse(url);
+      console.log("🔗 Parsed:", parsed);
+
+      // Extract token from query params
+      const token = parsed.queryParams?.token;
+      if (token) {
+        console.log("✅ Token extrait:", token);
+        navigationRef.current?.navigate("ResetPassword", { token });
+      } else {
+        console.log("❌ Token non trouvé dans les params");
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
+
   if (!fontsLoaded) return null;
+
+  // ✅ Linking compatible Expo Go (exp://.../--/reset-password?token=xxx)
+  // Plus tard (build), tu pourras aussi ajouter "kebapp://"
+  const linking = {
+    prefixes: [Linking.createURL("/")],
+    config: {
+      screens: {
+        ResetPassword: {
+          path: "reset-password",
+          parse: {
+            token: (token) => token,
+          },
+        },
+      },
+    },
+  };
 
   return (
     <Provider store={store}>
       <PersistGate persistor={persistor}>
         <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-          <NavigationContainer>
+          <NavigationContainer linking={linking} ref={navigationRef}>
             <AppNavigator />
           </NavigationContainer>
         </View>

@@ -3,6 +3,9 @@
     "name": "Keb'ap",
     "slug": "kebap",
     "version": "1.0.0",
+
+    "scheme": "kebapp",
+
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
@@ -25,8 +28,6 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-font"
-    ]
+    "plugins": ["expo-font"]
   }
 }
