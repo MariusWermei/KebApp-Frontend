@@ -23,7 +23,7 @@ export default function Geolocation({ navigation }) {
       // Mettre à jour la géolocalisation tous les 10 mètres
       locationSubscriptionRef.current = await Location.watchPositionAsync(
         {
-          accuracy: Location.Accuracy.Balanced,
+          accuracy: Location.Accuracy.High,
           distanceInterval: 10, // 10 mètres
         },
         async (location) => {
