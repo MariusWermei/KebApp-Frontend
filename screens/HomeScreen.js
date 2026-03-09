@@ -60,7 +60,6 @@ export default function HomeScreen() {
         restaurantsUrl += `&latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
       }
 
-      console.log("🔍 Fetching restaurants from:", restaurantsUrl);
       const restoResponse = await fetch(restaurantsUrl);
       const restoData = await restoResponse.json();
       if (restoData.result) {
@@ -68,7 +67,7 @@ export default function HomeScreen() {
       }
 
       // 3. Fetch recommandations (seulement si PAS de tags sélectionnés + connecté + préférences)
-      console.log("📊 Check recommendations:", {
+      console.log(" Check recommendations:", {
         selectedTags: selectedTags.length,
         token: !!token,
         preferences: preferences.length,
@@ -85,17 +84,16 @@ export default function HomeScreen() {
           recoUrl += `&latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
         }
 
-        console.log("🚀 Fetching recommendations from:", recoUrl);
         const recoResponse = await fetch(recoUrl);
         const recoData = await recoResponse.json();
 
         if (recoData.result) {
           setRecommendations(recoData.restaurants);
         } else {
-          console.log("❌ Recommendations error:", recoData.error);
+          console.log(" Recommendations error:", recoData.error);
         }
       } else {
-        console.log("⏭️ Skipping recommendations (conditions not met)");
+        console.log(" Skipping recommendations (conditions not met)");
       }
     }
 
@@ -147,7 +145,7 @@ export default function HomeScreen() {
 
         <TouchableOpacity
           style={styles.mapPreview}
-          onPress={() => navigation.navigate("Map")}
+          // onPress={() => navigation.navigate("Map")}
           activeOpacity={0.8}
         >
           <View style={styles.mapOverlay}>
