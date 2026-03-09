@@ -10,6 +10,7 @@ export default function RestaurantCard({
   preferences = [],
 }) {
   const isHorizontal = variant === "horizontal";
+  const isMap = variant === "map";
   const formattedDistance = restaurant.distance
     ? restaurant.distance < 1000
       ? `${Math.round(restaurant.distance)} m`
@@ -26,14 +27,20 @@ export default function RestaurantCard({
     <TouchableOpacity
       style={[
         styles.card,
-        isHorizontal ? styles.cardHorizontal : styles.cardVertical,
+        isHorizontal && styles.cardHorizontal,
+        isMap && styles.cardMap,
+        !isHorizontal && !isMap && styles.cardVertical,
       ]}
       onPress={onPress}
       activeOpacity={0.8}
     >
       {/* Image */}
       <View style={styles.imageWrap}>
-        <Image source={image} style={styles.image} resizeMode="cover" />
+        <Image
+          source={image}
+          style={[styles.image, isMap && styles.imageMap]}
+          resizeMode="cover"
+        />
         <TouchableOpacity style={styles.heartBtn}>
           <Ionicons name="heart-outline" size={22} color={colors.textWhite} />
         </TouchableOpacity>
@@ -55,7 +62,7 @@ export default function RestaurantCard({
           )}
         </View>
 
-        {restaurant.address && (
+        {!isMap && restaurant.address && (
           <Text style={styles.address} numberOfLines={1}>
             {restaurant.address}
           </Text>
@@ -66,18 +73,18 @@ export default function RestaurantCard({
         )}
 
         {/* Tags preview */}
-        <View style={styles.tagsRow}>
-          {(preferences.length > 0
-            ? // Si on a des préférences → afficher seulement les tags qui matchent
-              restaurant.tags.filter((tag) => preferences.includes(tag))
-            : // Sinon → afficher les 3 premiers tags du restaurant
-              restaurant.tags.slice(0, 3)
-          ).map((tag) => (
-            <View key={tag} style={styles.tagChip}>
-              <Text style={styles.tagChipText}>{tag}</Text>
-            </View>
-          ))}
-        </View>
+        {!isMap && (
+          <View style={styles.tagsRow}>
+            {(preferences.length > 0
+              ? restaurant.tags.filter((tag) => preferences.includes(tag))
+              : restaurant.tags.slice(0, 3)
+            ).map((tag) => (
+              <View key={tag} style={styles.tagChip}>
+                <Text style={styles.tagChipText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -166,5 +173,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.family.regular,
     fontSize: fonts.size.caption,
     color: colors.textMuted,
+  },
+  cardMap: {
+    width: 180,
+    marginRight: 10,
+  },
+  imageMap: {
+    height: 90,
   },
 });

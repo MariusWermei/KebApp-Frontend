@@ -19,6 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import SearchBar from "../components/SearchBar";
 import FilterTags from "../components/FilterTags";
 import RestaurantCard from "../components/RestaurantCard";
+import MapView, { Marker } from "react-native-maps";
 
 export default function HomeScreen() {
   const API_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -145,12 +146,39 @@ export default function HomeScreen() {
 
         <TouchableOpacity
           style={styles.mapPreview}
-          // onPress={() => navigation.navigate("Map")}
+          onPress={() => navigation.navigate("Map")}
           activeOpacity={0.8}
         >
+          <MapView
+            style={styles.miniMap}
+            initialRegion={{
+              latitude: coords?.latitude || 48.8566,
+              longitude: coords?.longitude || 2.3522,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
+            scrollEnabled={false}
+            zoomEnabled={false}
+            rotateEnabled={false}
+            pitchEnabled={false}
+            showsUserLocation={true}
+            pointerEvents="none"
+          >
+            {restaurants.map((restaurant) => (
+              <Marker
+                key={restaurant._id}
+                coordinate={{
+                  latitude: restaurant.location.coordinates[1],
+                  longitude: restaurant.location.coordinates[0],
+                }}
+              >
+                <View style={styles.miniMarker} />
+              </Marker>
+            ))}
+          </MapView>
           <View style={styles.mapOverlay}>
-            <Ionicons name="map-outline" size={22} color={colors.textWhite} />
-            <Text style={styles.mapOverlayText}>APERÇU DE MAP</Text>
+            <Ionicons name="map-outline" size={18} color={colors.textWhite} />
+            <Text style={styles.mapOverlayText}>Voir la carte</Text>
           </View>
         </TouchableOpacity>
 
@@ -288,24 +316,36 @@ const styles = StyleSheet.create({
   mapPreview: {
     height: 160,
     borderRadius: 14,
-    backgroundColor: colors.backgroundDark,
-    justifyContent: "center",
-    alignItems: "center",
+    overflow: "hidden",
     marginTop: 16,
     marginBottom: 36,
   },
+  miniMap: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  miniMarker: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.primary,
+    borderWidth: 1.5,
+    borderColor: colors.textWhite,
+  },
   mapOverlay: {
+    position: "absolute",
+    bottom: 10,
+    alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.15)",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-    gap: 8,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    gap: 6,
   },
   mapOverlayText: {
     fontFamily: fonts.family.bold,
-    fontSize: fonts.size.small,
+    fontSize: fonts.size.caption,
     color: colors.textWhite,
   },
   sectionHeader: {
