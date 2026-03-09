@@ -4,19 +4,170 @@ import {
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
+  Modal,
+  TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useState, useEffect, useRef } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 
-const FAKE_CARDS = [
-  { id: "1", type: "Visa", last4: "4242", expiry: "12/26" },
-  { id: "2", type: "Mastercard", last4: "8888", expiry: "08/25" },
-];
-
 export default function PaymentMethodScreen() {
   const navigation = useNavigation();
+  const timeoutRef = useRef(null);
+
+  // 💳 États cartes
+  const [savedCards, setSavedCards] = useState([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteCardId, setDeleteCardId] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // 🎯 État pour alertes personnalisées
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertData, setAlertData] = useState({
+    type: "success",
+    title: "",
+    message: "",
+  });
+
+  // 📝 États du formulaire
+  const [formData, setFormData] = useState({
+    cardholderName: "",
+    cardNumber: "",
+    expiryMonth: "",
+    expiryYear: "",
+    cvv: "",
+  });
+
+  // 🔔 Afficher une alerte personnalisée
+  const showCustomAlert = (type, title, message) => {
+    setAlertData({ type, title, message });
+    setShowAlert(true);
+    const timeout = type === "success" ? 3000 : 4000;
+    timeoutRef.current = setTimeout(() => setShowAlert(false), timeout);
+  };
+
+  // 📍 Charger les cartes au montage
+  useEffect(() => {
+    loadSavedCards();
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  // 💾 Charger les cartes sauvegardées
+  const loadSavedCards = async () => {
+    try {
+      const saved = await AsyncStorage.getItem("savedCards");
+      if (saved) {
+        setSavedCards(JSON.parse(saved));
+      }
+    } catch (error) {
+      console.error("❌ Erreur chargement cartes:", error);
+    }
+  };
+
+  // ✅ Ajouter une nouvelle carte
+  const handleAddCard = async () => {
+    const { cardholderName, cardNumber, expiryMonth, expiryYear, cvv } =
+      formData;
+
+    // Validation
+    if (
+      !cardholderName.trim() ||
+      !cardNumber.trim() ||
+      !expiryMonth.trim() ||
+      !expiryYear.trim() ||
+      !cvv.trim()
+    ) {
+      showCustomAlert(
+        "warning",
+        "Information manquante",
+        "Complète tous les champs.",
+      );
+      return;
+    }
+
+    // Validation format
+    if (cardNumber.replace(/\s/g, "").length !== 16) {
+      showCustomAlert(
+        "warning",
+        "Numéro invalide",
+        "Le numéro de carte doit contenir 16 chiffres.",
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const last4 = cardNumber.slice(-4);
+      const cardType = cardNumber.startsWith("4")
+        ? "Visa"
+        : cardNumber.startsWith("5")
+          ? "Mastercard"
+          : "Carte bancaire";
+
+      const newCard = {
+        id: Date.now().toString(),
+        cardholderName: cardholderName.trim(),
+        cardType,
+        last4,
+        expiry: `${expiryMonth}/${expiryYear}`,
+      };
+
+      const updated = [...savedCards, newCard];
+      await AsyncStorage.setItem("savedCards", JSON.stringify(updated));
+      setSavedCards(updated);
+
+      // Reset form
+      setFormData({
+        cardholderName: "",
+        cardNumber: "",
+        expiryMonth: "",
+        expiryYear: "",
+        cvv: "",
+      });
+      setShowAddModal(false);
+      showCustomAlert("success", "Succès", "Carte ajoutée!");
+    } catch (error) {
+      console.error("❌ Erreur ajout carte:", error);
+      showCustomAlert("error", "Erreur", "Impossible d'ajouter la carte.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🗑️ Supprimer une carte
+  const handleDeleteCard = (id) => {
+    setDeleteCardId(id);
+    setShowDeleteConfirm(true);
+  };
+
+  // ✅ Confirmer la suppression
+  const confirmDeleteCard = async () => {
+    if (!deleteCardId) return;
+
+    try {
+      const updated = savedCards.filter((card) => card.id !== deleteCardId);
+      await AsyncStorage.setItem("savedCards", JSON.stringify(updated));
+      setSavedCards(updated);
+      showCustomAlert("success", "Succès", "Carte supprimée!");
+      setShowDeleteConfirm(false);
+      setDeleteCardId(null);
+    } catch (error) {
+      console.error("❌ Erreur suppression:", error);
+      showCustomAlert("error", "Erreur", "Impossible de supprimer la carte.");
+      setShowDeleteConfirm(false);
+      setDeleteCardId(null);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -33,28 +184,54 @@ export default function PaymentMethodScreen() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.sectionLabel}>Vos méthodes de paiement</Text>
+        <Text style={styles.sectionLabel}>Vos cartes bancaires</Text>
 
-        {FAKE_CARDS.map((card) => (
-          <View key={card.id} style={styles.card}>
-            <View style={styles.cardLeft}>
-              <Ionicons name="card-outline" size={28} color={colors.primary} />
-              <View style={styles.cardInfo}>
-                <Text style={styles.cardType}>
-                  {card.type} •••• {card.last4}
-                </Text>
-                <Text style={styles.cardExpiry}>Expire le {card.expiry}</Text>
+        {/* 💳 Cartes sauvegardées */}
+        {savedCards.length > 0 ? (
+          <>
+            {savedCards.map((card) => (
+              <View key={card.id} style={styles.card}>
+                <View style={styles.cardLeft}>
+                  <Ionicons
+                    name="card-outline"
+                    size={28}
+                    color={colors.primary}
+                  />
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cardType}>
+                      {card.cardType} •••• {card.last4}
+                    </Text>
+                    <Text style={styles.cardExpiry}>Expire {card.expiry}</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => handleDeleteCard(card.id)}
+                  style={styles.deleteCardBtn}
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={22}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
               </View>
-            </View>
-            <Ionicons
-              name="checkmark-circle"
-              size={22}
-              color={colors.primary}
-            />
+            ))}
+          </>
+        ) : (
+          // 📭 Message si pas de carte
+          <View style={styles.emptyState}>
+            <Ionicons name="card-outline" size={48} color={colors.textLight} />
+            <Text style={styles.emptyTitle}>Aucune carte enregistrée</Text>
+            <Text style={styles.emptyMessage}>
+              Ajoute une carte bancaire pour payer tes commandes facilement.
+            </Text>
           </View>
-        ))}
+        )}
 
-        <TouchableOpacity style={styles.addBtn}>
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => setShowAddModal(true)}
+        >
           <Ionicons
             name="add-circle-outline"
             size={22}
@@ -63,6 +240,259 @@ export default function PaymentMethodScreen() {
           <Text style={styles.addBtnText}>Ajouter une carte</Text>
         </TouchableOpacity>
       </View>
+
+      {/* 🔽 MODALE: AJOUTER UNE CARTE */}
+      <Modal
+        visible={showAddModal}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => {
+          setShowAddModal(false);
+          // Reset le formulaire
+          setFormData({
+            cardholderName: "",
+            cardNumber: "",
+            expiryMonth: "",
+            expiryYear: "",
+            cvv: "",
+          });
+        }}
+      >
+        <SafeAreaView style={styles.safe}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+          >
+            {/* Header modal */}
+            <View style={styles.header}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowAddModal(false);
+                  // Reset le formulaire
+                  setFormData({
+                    cardholderName: "",
+                    cardNumber: "",
+                    expiryMonth: "",
+                    expiryYear: "",
+                    cvv: "",
+                  });
+                }}
+                style={styles.backBtn}
+              >
+                <Ionicons name="arrow-back" size={24} color={colors.textDark} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Ajouter une carte</Text>
+              <View style={{ width: 24 }} />
+            </View>
+
+            <ScrollView
+              style={styles.content}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* 📝 Champ: Nom du titulaire */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Nom du titulaire</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ex: Jean Dupont"
+                  placeholderTextColor={colors.textLight}
+                  value={formData.cardholderName}
+                  onChangeText={(text) =>
+                    setFormData({ ...formData, cardholderName: text })
+                  }
+                />
+              </View>
+
+              {/* 📝 Champ: Numéro de carte */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Numéro de carte</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="1234 5678 9012 3456"
+                  placeholderTextColor={colors.textLight}
+                  keyboardType="numeric"
+                  maxLength={19}
+                  value={formData.cardNumber}
+                  onChangeText={(text) => {
+                    // Format: XXXX XXXX XXXX XXXX
+                    const formatted = text
+                      .replace(/\s/g, "")
+                      .replace(/(\d{4})/g, "$1 ")
+                      .trim();
+                    setFormData({ ...formData, cardNumber: formatted });
+                  }}
+                />
+              </View>
+
+              {/* 📝 Champs: Expiry + CVV */}
+              <View style={styles.rowGroup}>
+                <View style={[styles.formGroup, { flex: 1, marginRight: 12 }]}>
+                  <Text style={styles.label}>Mois</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="MM"
+                    placeholderTextColor={colors.textLight}
+                    keyboardType="numeric"
+                    maxLength={2}
+                    value={formData.expiryMonth}
+                    onChangeText={(text) =>
+                      setFormData({ ...formData, expiryMonth: text })
+                    }
+                  />
+                </View>
+                <View style={[styles.formGroup, { flex: 1, marginRight: 12 }]}>
+                  <Text style={styles.label}>Année</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="YY"
+                    placeholderTextColor={colors.textLight}
+                    keyboardType="numeric"
+                    maxLength={2}
+                    value={formData.expiryYear}
+                    onChangeText={(text) =>
+                      setFormData({ ...formData, expiryYear: text })
+                    }
+                  />
+                </View>
+                <View style={[styles.formGroup, { flex: 1 }]}>
+                  <Text style={styles.label}>CVV</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="123"
+                    placeholderTextColor={colors.textLight}
+                    keyboardType="numeric"
+                    maxLength={3}
+                    value={formData.cvv}
+                    onChangeText={(text) =>
+                      setFormData({ ...formData, cvv: text })
+                    }
+                  />
+                </View>
+              </View>
+
+              {/* 🔘 Bouton Ajouter */}
+              <TouchableOpacity
+                style={[styles.submitBtn, loading && { opacity: 0.6 }]}
+                onPress={handleAddCard}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.submitBtnText}>Ajouter la carte</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* ⚠️ MODALE: CONFIRMATION SUPPRESSION */}
+      <Modal
+        visible={showDeleteConfirm}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => {
+          setShowDeleteConfirm(false);
+          setDeleteCardId(null);
+        }}
+      >
+        <View style={styles.alertOverlay}>
+          <View style={styles.confirmBox}>
+            <Ionicons
+              name="trash-outline"
+              size={40}
+              color="#F44336"
+              style={{ marginBottom: 16 }}
+            />
+            <Text style={styles.confirmTitle}>Supprimer la carte ?</Text>
+            <Text style={styles.confirmMessage}>
+              Cette action ne peut pas être annulée.
+            </Text>
+
+            {/* Boutons */}
+            <View style={styles.buttonGroup}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteCardId(null);
+                }}
+              >
+                <Text style={styles.cancelBtnText}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteBtnConfirm}
+                onPress={confirmDeleteCard}
+              >
+                <Text style={styles.deleteBtnText}>Supprimer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 🎯 MODALE: ALERTES PERSONNALISÉES */}
+      <Modal
+        visible={showAlert}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setShowAlert(false)}
+      >
+        <TouchableOpacity
+          style={styles.alertOverlay}
+          onPress={() => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            setShowAlert(false);
+          }}
+          activeOpacity={1}
+        >
+          <TouchableOpacity
+            style={[
+              styles.alertBox,
+              alertData.type === "success" && { borderLeftColor: "#4CAF50" },
+              alertData.type === "error" && { borderLeftColor: "#F44336" },
+              alertData.type === "warning" && { borderLeftColor: "#FF9800" },
+            ]}
+            onPress={() => {}}
+            activeOpacity={1}
+          >
+            {/* Icône */}
+            <View
+              style={[
+                styles.alertIcon,
+                alertData.type === "success" && {
+                  backgroundColor: "#4CAF50",
+                },
+                alertData.type === "error" && {
+                  backgroundColor: "#F44336",
+                },
+                alertData.type === "warning" && {
+                  backgroundColor: "#FF9800",
+                },
+              ]}
+            >
+              <Ionicons
+                name={
+                  alertData.type === "success"
+                    ? "checkmark-circle"
+                    : alertData.type === "error"
+                      ? "close-circle"
+                      : "alert-circle"
+                }
+                size={24}
+                color="white"
+              />
+            </View>
+
+            {/* Contenu */}
+            <View style={styles.alertContent}>
+              <Text style={styles.alertTitle}>{alertData.title}</Text>
+              <Text style={styles.alertMessage}>{alertData.message}</Text>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -135,5 +565,165 @@ const styles = StyleSheet.create({
     fontFamily: fonts.family.semibold,
     fontSize: fonts.size.body,
     color: colors.primary,
+  },
+  // 📭 État vide
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 40,
+    gap: 12,
+  },
+  emptyTitle: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.h4,
+    color: colors.textDark,
+  },
+  emptyMessage: {
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
+    color: colors.textMuted,
+    textAlign: "center",
+    paddingHorizontal: 24,
+  },
+  deleteCardBtn: {
+    padding: 8,
+  },
+  // 📝 Styles formulaire
+  formGroup: {
+    marginBottom: 20,
+  },
+  rowGroup: {
+    flexDirection: "row",
+  },
+  label: {
+    fontFamily: fonts.family.semibold,
+    fontSize: fonts.size.body,
+    color: colors.textDark,
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
+    color: colors.textDark,
+    backgroundColor: colors.backgroundLight,
+  },
+  submitBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginTop: 24,
+    marginBottom: 32,
+  },
+  submitBtnText: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.body,
+    color: "white",
+  },
+  // ⚠️ Styles modale confirmation suppression
+  alertOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  confirmBox: {
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 24,
+    alignItems: "center",
+    gap: 12,
+    maxWidth: "85%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  confirmTitle: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.h4,
+    color: colors.textDark,
+    textAlign: "center",
+  },
+  confirmMessage: {
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
+    color: colors.textMuted,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  buttonGroup: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+  },
+  cancelBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  cancelBtnText: {
+    fontFamily: fonts.family.semibold,
+    fontSize: fonts.size.body,
+    color: colors.textDark,
+  },
+  deleteBtnConfirm: {
+    flex: 1,
+    backgroundColor: "#F44336",
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  deleteBtnText: {
+    fontFamily: fonts.family.semibold,
+    fontSize: fonts.size.body,
+    color: "white",
+  },
+  // 🎯 Styles alertes personnalisées
+  alertBox: {
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    borderLeftWidth: 5,
+    maxWidth: "90%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  alertIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  alertContent: {
+    flex: 1,
+    gap: 4,
+  },
+  alertTitle: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.body,
+    color: colors.textDark,
+  },
+  alertMessage: {
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.caption,
+    color: colors.textMuted,
   },
 });
