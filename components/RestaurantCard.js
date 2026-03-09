@@ -16,7 +16,7 @@ export default function RestaurantCard({
   const dispatch = useDispatch();
   const token = useSelector((state) => state.user.token);
   const favorites = useSelector((state) => state.user.favorites);
-  const isFavorite = favorites.includes(restaurant._id);
+  const isFavorite = (favorites || []).includes(restaurant._id);
 
   const toggleFavorite = async () => {
     if (!token) return;
