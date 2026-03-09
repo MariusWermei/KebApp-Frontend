@@ -14,11 +14,15 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart, clearCart, removeFromCart } from "../reducers/cart";
+import {
+  addToCart,
+  clearCart,
+  removeFromCart,
+  decreaseQuantity,
+} from "../reducers/cart";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 import Button from "../components/Button";
-import ModalHeader from "../components/ModalHeader";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
@@ -141,18 +145,8 @@ export default function RestaurantScreen({ route, navigation }) {
     );
   };
 
-  const handleDecreaseQuantity = (index, item) => {
-    if (item.quantity > 1) {
-      dispatch(
-        addToCart({
-          menuItem: { ...item.menuItem, basePrice: -item.menuItem.basePrice },
-          selectedOptions: item.selectedOptions,
-          restaurantName,
-        }),
-      );
-    } else {
-      dispatch(removeFromCart(index));
-    }
+  const handleDecreaseQuantity = (index) => {
+    dispatch(decreaseQuantity(index));
   };
   if (loading)
     return (
@@ -456,7 +450,8 @@ export default function RestaurantScreen({ route, navigation }) {
       <BottomSheet
         ref={reviewsSheetRef}
         index={-1}
-        snapPoints={["60%"]}
+        enableDynamicSizing
+        maxDynamicContentSize={600}
         enablePanDownToClose
         backgroundStyle={{ backgroundColor: colors.backgroundLight }}
         backdropComponent={(props) => (
@@ -469,10 +464,6 @@ export default function RestaurantScreen({ route, navigation }) {
         )}
       >
         <BottomSheetScrollView contentContainerStyle={{ padding: 20 }}>
-          <ModalHeader
-            title="Avis"
-            onClose={() => reviewsSheetRef.current?.close()}
-          />
           <View style={styles.reviewsRating}>
             <Ionicons name="star" size={20} color={colors.primary} />
             <Text style={styles.reviewsRatingText}>{restaurant.rating}</Text>
@@ -524,7 +515,8 @@ export default function RestaurantScreen({ route, navigation }) {
       <BottomSheet
         ref={menuSheetRef}
         index={-1}
-        snapPoints={["70%"]}
+        enableDynamicSizing
+        maxDynamicContentSize={600}
         enablePanDownToClose
         backgroundStyle={{ backgroundColor: colors.backgroundLight }}
         backdropComponent={(props) => (
@@ -537,10 +529,6 @@ export default function RestaurantScreen({ route, navigation }) {
         )}
       >
         <BottomSheetScrollView contentContainerStyle={{ padding: 20 }}>
-          <ModalHeader
-            title={selectedItem?.name || ""}
-            onClose={() => menuSheetRef.current?.close()}
-          />
           <Text style={styles.modalPrice}>
             {((selectedItem?.basePrice || 0) / 100).toFixed(2)}€
           </Text>
@@ -650,7 +638,8 @@ export default function RestaurantScreen({ route, navigation }) {
       <BottomSheet
         ref={cartSheetRef}
         index={-1}
-        snapPoints={["10%"]}
+        enableDynamicSizing
+        maxDynamicContentSize={600}
         enablePanDownToClose={true}
         backgroundStyle={{ backgroundColor: colors.backgroundLight }}
         backdropComponent={(props) => (
@@ -662,7 +651,12 @@ export default function RestaurantScreen({ route, navigation }) {
           />
         )}
       >
-        <BottomSheetScrollView contentContainerStyle={{ padding: 20 }}>
+        <BottomSheetScrollView
+          contentContainerStyle={{
+            padding: 20,
+            paddingBottom: cartItems.length > 0 ? 120 : 20,
+          }}
+        >
           <Text style={styles.modalTitle}>Votre panier</Text>
 
           {cartItems.length === 0 ? (
@@ -690,17 +684,7 @@ export default function RestaurantScreen({ route, navigation }) {
                   </View>
                   <View style={styles.cartItemActions}>
                     <TouchableOpacity
-                      onPress={() =>
-                        item.quantity > 1
-                          ? handleAddQuantity({
-                              ...item,
-                              menuItem: {
-                                ...item.menuItem,
-                                basePrice: -item.menuItem.basePrice,
-                              },
-                            })
-                          : dispatch(removeFromCart(index))
-                      }
+                      onPress={() => handleDecreaseQuantity(index)}
                     >
                       <Text style={styles.decreaseQuantityBtn}>-1</Text>
                     </TouchableOpacity>
@@ -710,14 +694,18 @@ export default function RestaurantScreen({ route, navigation }) {
                   </View>
                 </View>
               ))}
-
-              <Text style={styles.cartTotal}>
-                Total : {(totalPrice / 100).toFixed(2)}€
-              </Text>
-              <Button title="Procéder au paiement" onPress={() => {}} />
             </>
           )}
         </BottomSheetScrollView>
+
+        {cartItems.length > 0 && (
+          <View style={styles.cartFooterFixed}>
+            <Text style={styles.cartTotal}>
+              Total : {(totalPrice / 100).toFixed(2)}€
+            </Text>
+            <Button title="Procéder au paiement" onPress={() => {}} />
+          </View>
+        )}
       </BottomSheet>
     </GestureHandlerRootView>
   );
@@ -1072,7 +1060,14 @@ const styles = StyleSheet.create({
     fontFamily: fonts.family.bold,
     fontSize: fonts.size.h4,
     color: colors.textDark,
-    marginVertical: 16,
+    marginBottom: 12,
+  },
+  cartFooterFixed: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 20,
+
+    backgroundColor: colors.backgroundLight,
   },
   emptyCartText: {
     fontFamily: fonts.family.regular,
