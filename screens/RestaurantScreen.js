@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -7,37 +7,58 @@ import {
   StyleSheet,
   ActivityIndicator,
   Image,
-  Modal,
   SafeAreaView,
   Linking,
   Share,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart, clearCart } from "../reducers/cart";
+import { addToCart, clearCart, removeFromCart } from "../reducers/cart";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 import Button from "../components/Button";
+import ModalHeader from "../components/ModalHeader";
+import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function RestaurantScreen({ route, navigation }) {
   const { restaurantName } = route.params;
-  const [hoursVisible, setHoursVisible] = useState(false);
-  const [reviewsVisible, setReviewsVisible] = useState(false);
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null); // plat sélectionné pour la modal
   const [selectedOptions, setSelectedOptions] = useState({}); // options choisies
-  const [modalVisible, setModalVisible] = useState(false);
+  const cartSheetRef = useRef(null);
+  const hourSheetRef = useRef(null);
+  const reviewsSheetRef = useRef(null);
+  const menuSheetRef = useRef(null);
 
   const token = useSelector((state) => state.user.token);
   const cartRestaurantName = useSelector((state) => state.cart.restaurantName);
   const dispatch = useDispatch();
-  const handleClearCart = () => dispatch(clearCart());
   const cartItems = useSelector((state) => state.cart.items);
   const totalCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
+
+  const calculateItemPrice = (item) => {
+    let price = item.menuItem.basePrice;
+
+    // Ajouter les prix des suppléments
+    if (item.selectedOptions?.supplements) {
+      item.selectedOptions.supplements.forEach((sup) => {
+        const supObj = item.menuItem.supplements?.find((s) => s.name === sup);
+        if (supObj) {
+          price += supObj.price || 0;
+        }
+      });
+    }
+
+    return price;
+  };
+
   const totalPrice = cartItems.reduce(
-    (sum, i) => sum + i.menuItem.basePrice * i.quantity,
+    (sum, i) => sum + calculateItemPrice(i) * i.quantity,
     0,
   );
   const Api_Url = process.env.EXPO_PUBLIC_API_URL;
@@ -63,7 +84,7 @@ export default function RestaurantScreen({ route, navigation }) {
   const openModal = (item) => {
     setSelectedItem(item);
     setSelectedOptions({});
-    setModalVisible(true);
+    menuSheetRef.current?.expand();
   };
   const handleShare = async () => {
     try {
@@ -74,16 +95,25 @@ export default function RestaurantScreen({ route, navigation }) {
       console.log(error);
     }
   };
-  const toggleOption = (label, option, multiple = true) => {
+  const toggleOption = (label, option, multiple = true, maxCount = null) => {
     setSelectedOptions((prev) => {
       const current = prev[label] || [];
       if (multiple) {
-        return {
-          ...prev,
-          [label]: current.includes(option)
-            ? current.filter((o) => o !== option)
-            : [...current, option],
-        };
+        if (current.includes(option)) {
+          return {
+            ...prev,
+            [label]: current.filter((o) => o !== option),
+          };
+        } else {
+          // Si maxCount est défini et on a déjà atteint la limite, ne pas ajouter
+          if (maxCount && current.length >= maxCount) {
+            return prev;
+          }
+          return {
+            ...prev,
+            [label]: [...current, option],
+          };
+        }
       } else {
         return { ...prev, [label]: [option] };
       }
@@ -98,7 +128,31 @@ export default function RestaurantScreen({ route, navigation }) {
         restaurantName,
       }),
     );
-    setModalVisible(false);
+    menuSheetRef.current?.close();
+  };
+
+  const handleAddQuantity = (item) => {
+    dispatch(
+      addToCart({
+        menuItem: item.menuItem,
+        selectedOptions: item.selectedOptions,
+        restaurantName,
+      }),
+    );
+  };
+
+  const handleDecreaseQuantity = (index, item) => {
+    if (item.quantity > 1) {
+      dispatch(
+        addToCart({
+          menuItem: { ...item.menuItem, basePrice: -item.menuItem.basePrice },
+          selectedOptions: item.selectedOptions,
+          restaurantName,
+        }),
+      );
+    } else {
+      dispatch(removeFromCart(index));
+    }
   };
   if (loading)
     return (
@@ -144,408 +198,528 @@ export default function RestaurantScreen({ route, navigation }) {
 
   // Affiche le restaurant et le menu
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
-        {/* Photo de couverture */}
-        {restaurant.photos?.[0] ? (
-          <Image
-            source={{ uri: restaurant.photos[0] }}
-            style={styles.coverImage}
-          />
-        ) : (
-          <View style={styles.coverPlaceholder} />
-        )}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container}>
+        <ScrollView>
+          {/* Photo de couverture */}
+          {restaurant.photos?.[0] ? (
+            <Image
+              source={{ uri: restaurant.photos[0] }}
+              style={styles.coverImage}
+            />
+          ) : (
+            <View style={styles.coverPlaceholder} />
+          )}
 
-        {/* Bouton retour */}
-        <View style={styles.headerButtons}>
-          <TouchableOpacity
-            style={styles.headerBtn}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={20} color="#fff" />
-          </TouchableOpacity>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.headerBtn} onPress={handleShare}>
-              <Ionicons name="share-outline" size={20} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.headerBtn}>
-              <Ionicons name="heart-outline" size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Infos restaurant */}
-        <View style={styles.infoCard}>
-          <Text style={styles.name}>{restaurant.name}</Text>
-          <TouchableOpacity
-            style={styles.linkBtn}
-            onPress={() =>
-              Linking.openURL(
-                `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address)}`,
-              )
-            }
-          >
-            <Text style={styles.address} numberOfLines={1} ellipsizeMode="tail">
-              📍 {restaurant.address}
-            </Text>
-            <Ionicons name="chevron-forward" size={16} color="#E8572A" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.linkBtn}
-            onPress={() => Linking.openURL(`tel:${restaurant.phone}`)}
-          >
-            <Text style={styles.phone}>📞 {restaurant.phone}</Text>
-            <Ionicons name="chevron-forward" size={16} color="#E8572A" />
-          </TouchableOpacity>
-
-          <View style={styles.infoRow}>
+          {/* Bouton retour */}
+          <View style={styles.headerButtons}>
             <TouchableOpacity
-              style={styles.infoHalf}
-              onPress={() => setReviewsVisible(true)}
+              style={styles.headerBtn}
+              onPress={() => navigation.goBack()}
             >
-              {/* Affiche la note et le nombre d'avis, ouvre la modal des avis au clic */}
-              <View style={styles.reviewsBtnLeft}>
-                <Ionicons name="star" size={16} color={colors.primary} />
-                <Text style={styles.reviewsBtnText}>
-                  {restaurant.rating} · {restaurant.totalRatings}
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={colors.primary}
-              />
+              <Ionicons name="arrow-back" size={20} color="#fff" />
             </TouchableOpacity>
-            {/*Affiche les horaires d'ouverture dans une modal*/}
-            <TouchableOpacity
-              style={styles.infoHalf}
-              onPress={() => setHoursVisible(true)}
-            >
-              <View style={styles.reviewsBtnLeft}>
-                <Ionicons
-                  name="time-outline"
-                  size={16}
-                  color={isOpenNow ? "#22C55E" : "#EF4444"}
-                />
-                <Text
-                  style={[
-                    styles.reviewsBtnText,
-                    { color: isOpenNow ? "#22C55E" : "#EF4444" },
-                  ]}
-                >
-                  {isOpenNow ? "Ouvert" : "Fermé"}
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={colors.primary}
-              />
-            </TouchableOpacity>
+            <View style={styles.headerRight}>
+              <TouchableOpacity style={styles.headerBtn} onPress={handleShare}>
+                <Ionicons name="share-outline" size={20} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.headerBtn}>
+                <Ionicons name="heart-outline" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        {/* Filtres catégories */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filters}
-        >
-          {categories.map((cat) => (
+          {/* Infos restaurant */}
+          <View style={styles.infoCard}>
+            <Text style={styles.name}>{restaurant.name}</Text>
             <TouchableOpacity
-              key={cat}
+              style={styles.linkBtn}
+              onPress={() =>
+                Linking.openURL(
+                  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address)}`,
+                )
+              }
+            >
+              <Text
+                style={styles.address}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                📍 {restaurant.address}
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color="#E8572A" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={[
-                styles.filterBtn,
-                activeCategory === cat && styles.filterBtnActive,
+                styles.linkBtn,
+                !restaurant.phone && styles.linkBtnDisabled,
               ]}
-              onPress={() => setActiveCategory(cat)}
+              onPress={() =>
+                restaurant.phone && Linking.openURL(`tel:${restaurant.phone}`)
+              }
+              disabled={!restaurant.phone}
             >
               <Text
                 style={[
-                  styles.filterText,
-                  activeCategory === cat && styles.filterTextActive,
+                  styles.phone,
+                  !restaurant.phone && styles.phoneDisabled,
                 ]}
               >
-                {cat}
+                📞 {restaurant.phone || "Numéro de téléphone inconnu"}
               </Text>
+              {restaurant.phone && (
+                <Ionicons name="chevron-forward" size={16} color="#E8572A" />
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.infoRow}>
+              <TouchableOpacity
+                style={styles.infoHalf}
+                onPress={() => reviewsSheetRef.current?.expand()}
+              >
+                {/* Affiche la note et le nombre d'avis, ouvre la modal des avis au clic */}
+                <View style={styles.reviewsBtnLeft}>
+                  <Ionicons name="star" size={16} color={colors.primary} />
+                  <Text style={styles.reviewsBtnText}>
+                    {restaurant.rating} · {restaurant.totalRatings}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+              {/*Affiche les horaires d'ouverture dans une modal*/}
+              <TouchableOpacity
+                style={styles.infoHalf}
+                onPress={() => hourSheetRef.current?.expand()}
+              >
+                <View style={styles.reviewsBtnLeft}>
+                  <Ionicons
+                    name="time-outline"
+                    size={16}
+                    color={isOpenNow ? "#22C55E" : "#EF4444"}
+                  />
+                  <Text
+                    style={[
+                      styles.reviewsBtnText,
+                      { color: isOpenNow ? "#22C55E" : "#EF4444" },
+                    ]}
+                  >
+                    {isOpenNow ? "Ouvert" : "Fermé"}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Filtres catégories */}
+          <View style={styles.filterScrollContainer}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.filters}
+            >
+              {categories.map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.filterBtn,
+                    activeCategory === cat && styles.filterBtnActive,
+                  ]}
+                  onPress={() => setActiveCategory(cat)}
+                >
+                  <Text
+                    style={[
+                      styles.filterText,
+                      activeCategory === cat && styles.filterTextActive,
+                    ]}
+                  >
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <LinearGradient
+              colors={["transparent", "rgba(0, 0, 0, 0.15)"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.filterScrollShadow}
+            />
+          </View>
+
+          {/* Liste des plats */}
+          {filteredMenu.map((item) => (
+            <TouchableOpacity
+              onPress={() => openModal(item)}
+              style={styles.menuCard}
+              key={item._id}
+            >
+              <View style={styles.menuInfo}>
+                <Text style={styles.menuName}>{item.name}</Text>
+                <Text style={styles.menuDesc}>{item.description}</Text>
+                <Text style={styles.menuPrice}>
+                  {(item.basePrice / 100).toFixed(2)}€
+                </Text>
+              </View>
+              <View style={styles.addBtn}>
+                <Text style={styles.addBtnText}>+</Text>
+              </View>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        {/* Liste des plats */}
-        {filteredMenu.map((item) => (
-          <View key={item._id} style={styles.menuCard}>
-            <View style={styles.menuInfo}>
-              <Text style={styles.menuName}>{item.name}</Text>
-              <Text style={styles.menuDesc}>{item.description}</Text>
-              <Text style={styles.menuPrice}>
-                {(item.basePrice / 100).toFixed(2)}€
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.addBtn}
-              onPress={() => openModal(item)}
-            >
-              <Text style={styles.addBtnText}>+</Text>
-            </TouchableOpacity>
+        {/* Bouton panier */}
+        <TouchableOpacity
+          style={styles.cartBar}
+          onPress={() => {
+            cartSheetRef.current?.expand();
+            console.log("reducer =>", cartItems, restaurantName);
+          }}
+        >
+          <View style={styles.cartCount}>
+            <Text style={styles.cartCountText}>{totalCount}</Text>
           </View>
-        ))}
-      </ScrollView>
-
-      {/* Bouton panier */}
-      <TouchableOpacity
-        style={styles.cartBar}
-        onPress={() => navigation.navigate("Cart")}
-      >
-        <View style={styles.cartCount}>
-          <Text style={styles.cartCountText}>{totalCount}</Text>
-        </View>
-        <Text style={styles.cartBarText}>Panier</Text>
-        <Text style={styles.cartBarPrice}>
-          {(totalPrice / 100).toFixed(2)}€
-        </Text>
-      </TouchableOpacity>
-      {/* Bouton DEV reset panier */}
-      {totalCount > 0 && (
-        <TouchableOpacity style={styles.devBtn} onPress={handleClearCart}>
-          <Text style={styles.devBtnText}>🗑️ DEV — Vider le panier</Text>
+          <Text style={styles.cartBarText}>Panier</Text>
+          <Text style={styles.cartBarPrice}>
+            {(totalPrice / 100).toFixed(2)}€
+          </Text>
         </TouchableOpacity>
-      )}
+        {/* Bouton DEV reset panier */}
+        {totalCount > 0 && (
+          <TouchableOpacity
+            style={styles.devBtn}
+            onPress={() => dispatch(clearCart())}
+          >
+            <Text style={styles.devBtnText}>🗑️ DEV — Vider le panier</Text>
+          </TouchableOpacity>
+        )}
+      </SafeAreaView>
       {/* Modal des horaires */}
-      <Modal visible={hoursVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.reviewsHeader}>
-              <Text style={styles.reviewsTitle}>Horaires</Text>
-              <View
-                style={[
-                  styles.openBadge,
-                  { backgroundColor: isOpenNow ? "#DCFCE7" : "#FEE2E2" },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.openBadgeText,
-                    { color: isOpenNow ? "#22C55E" : "#EF4444" },
-                  ]}
-                >
-                  {isOpenNow ? "Ouvert maintenant" : "Fermé actuellement"}
-                </Text>
-              </View>
-            </View>
+      <BottomSheet
+        ref={hourSheetRef}
+        index={-1}
+        snapPoints={["50%"]}
+        enablePanDownToClose
+        backgroundStyle={{ backgroundColor: colors.backgroundLight }}
+        backdropComponent={(props) => (
+          <BottomSheetBackdrop
+            {...props}
+            disappearsOnIndex={-1}
+            appearsOnIndex={0}
+            pressBehavior="close"
+          />
+        )}
+      >
+        <BottomSheetScrollView
+          contentContainerStyle={styles.bottomSheetContent}
+        >
+          {/* Header */}
+          <View style={styles.hoursHeader}>
+            <Text style={styles.hoursTitle}>Horaires</Text>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {restaurant.openingHours?.length > 0 ? (
-                restaurant.openingHours.map((line, index) => {
-                  const [day, hours] = line.split(": ");
-                  return (
-                    <View key={index} style={styles.hoursRow}>
-                      <Text style={styles.hoursDay}>{day}</Text>
-                      <Text style={styles.hoursText}>{hours || line}</Text>
-                    </View>
-                  );
-                })
-              ) : (
-                <Text style={styles.hoursEmpty}>Horaires non disponibles</Text>
-              )}
-            </ScrollView>
-
-            <Button title="Fermer" onPress={() => setHoursVisible(false)} />
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal des avis */}
-      <Modal visible={reviewsVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {/* Header */}
-            <View style={styles.reviewsHeader}>
-              <Text style={styles.reviewsTitle}>Avis</Text>
-              <View style={styles.reviewsRating}>
-                <Ionicons name="star" size={20} color={colors.primary} />
-                <Text style={styles.reviewsRatingText}>
-                  {restaurant.rating}
-                </Text>
-                <Text style={styles.reviewsTotal}>
-                  ({restaurant.totalRatings})
-                </Text>
-              </View>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {restaurant.reviews?.map((review, index) => (
-                <View key={index} style={styles.reviewCard}>
-                  {/* Auteur */}
-                  <View style={styles.reviewAuthor}>
-                    {review.profilePhoto ? (
-                      <Image
-                        source={{ uri: review.profilePhoto }}
-                        style={styles.reviewAvatar}
-                      />
-                    ) : (
-                      <View style={styles.reviewAvatarPlaceholder}>
-                        <Text style={styles.reviewAvatarLetter}>
-                          {review.author?.[0]?.toUpperCase()}
-                        </Text>
-                      </View>
-                    )}
-                    <View>
-                      <Text style={styles.reviewAuthorName}>
-                        {review.author}
-                      </Text>
-                      <Text style={styles.reviewDate}>{review.date}</Text>
-                    </View>
-                  </View>
-
-                  {/* Étoiles */}
-                  <View style={styles.reviewStars}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Ionicons
-                        key={star}
-                        name={star <= review.rating ? "star" : "star-outline"}
-                        size={14}
-                        color={colors.primary}
-                      />
-                    ))}
-                  </View>
-
-                  {/* Commentaire */}
-                  <Text style={styles.reviewText}>{review.text}</Text>
-                </View>
-              ))}
-            </ScrollView>
-
-            <Button title="Fermer" onPress={() => setReviewsVisible(false)} />
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal configuration plat */}
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{selectedItem?.name}</Text>
-            <Text style={styles.modalPrice}>
-              {((selectedItem?.basePrice || 0) / 100).toFixed(2)}€
+            <Text
+              style={[
+                styles.openBadgeText,
+                { color: isOpenNow ? "#1dca5dff" : "#EF4444" },
+              ]}
+            >
+              {isOpenNow ? "Ouvert" : "Fermé"}
             </Text>
+          </View>
 
-            <ScrollView>
-              {/* Sauces */}
-              {selectedItem?.sauces?.length > 0 && (
-                <View style={styles.optionSection}>
-                  <Text style={styles.optionLabel}>Sauce</Text>
-                  {selectedItem.sauces.map((sauce) => (
-                    <TouchableOpacity
-                      key={sauce.name}
-                      style={[
-                        styles.optionBtn,
-                        selectedOptions["sauce"]?.includes(sauce.name) &&
-                          styles.optionBtnActive,
-                      ]}
-                      onPress={() => toggleOption("sauce", sauce.name, true)}
-                    >
-                      <Text
-                        style={[
-                          styles.optionText,
-                          selectedOptions["sauce"]?.includes(sauce.name) &&
-                            styles.optionTextActive,
-                        ]}
-                      >
-                        {sauce.name}{" "}
-                        {sauce.extraPrice > 0
-                          ? `+${sauce.extraPrice / 100}€`
-                          : ""}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+          {/* Liste horaires */}
+          {restaurant.openingHours?.length > 0 ? (
+            restaurant.openingHours.map((line, index) => {
+              const [day, hours] = line.split(": ");
+              return (
+                <View key={index} style={styles.hoursRow}>
+                  <Text style={styles.hoursDay}>{day}</Text>
+                  <Text style={styles.hoursText}>{hours || line}</Text>
                 </View>
-              )}
+              );
+            })
+          ) : (
+            <Text style={styles.hoursEmpty}>Horaires non disponibles</Text>
+          )}
+        </BottomSheetScrollView>
+      </BottomSheet>
 
-              {/* Customizations (garniture, pain, viandes...) */}
-              {selectedItem?.customizations?.map((custom) => (
-                <View key={custom.label} style={styles.optionSection}>
-                  <Text style={styles.optionLabel}>{custom.label}</Text>
-                  {custom.options.map((option) => (
+      {/* BottomSheet des avis */}
+      <BottomSheet
+        ref={reviewsSheetRef}
+        index={-1}
+        snapPoints={["60%"]}
+        enablePanDownToClose
+        backgroundStyle={{ backgroundColor: colors.backgroundLight }}
+        backdropComponent={(props) => (
+          <BottomSheetBackdrop
+            {...props}
+            disappearsOnIndex={-1}
+            appearsOnIndex={0}
+            pressBehavior="close"
+          />
+        )}
+      >
+        <BottomSheetScrollView contentContainerStyle={{ padding: 20 }}>
+          <ModalHeader
+            title="Avis"
+            onClose={() => reviewsSheetRef.current?.close()}
+          />
+          <View style={styles.reviewsRating}>
+            <Ionicons name="star" size={20} color={colors.primary} />
+            <Text style={styles.reviewsRatingText}>{restaurant.rating}</Text>
+            <Text style={styles.reviewsTotal}>({restaurant.totalRatings})</Text>
+          </View>
+
+          {restaurant.reviews?.map((review, index) => (
+            <View key={index} style={styles.reviewCard}>
+              {/* Auteur */}
+              <View style={styles.reviewAuthor}>
+                {review.profilePhoto ? (
+                  <Image
+                    source={{ uri: review.profilePhoto }}
+                    style={styles.reviewAvatar}
+                  />
+                ) : (
+                  <View style={styles.reviewAvatarPlaceholder}>
+                    <Text style={styles.reviewAvatarLetter}>
+                      {review.author?.[0]?.toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+                <View>
+                  <Text style={styles.reviewAuthorName}>{review.author}</Text>
+                  <Text style={styles.reviewDate}>{review.date}</Text>
+                </View>
+              </View>
+
+              {/* Étoiles */}
+              <View style={styles.reviewStars}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Ionicons
+                    key={star}
+                    name={star <= review.rating ? "star" : "star-outline"}
+                    size={14}
+                    color={colors.primary}
+                  />
+                ))}
+              </View>
+
+              {/* Commentaire */}
+              <Text style={styles.reviewText}>{review.text}</Text>
+            </View>
+          ))}
+        </BottomSheetScrollView>
+      </BottomSheet>
+
+      {/* BottomSheet configuration plat */}
+      <BottomSheet
+        ref={menuSheetRef}
+        index={-1}
+        snapPoints={["70%"]}
+        enablePanDownToClose
+        backgroundStyle={{ backgroundColor: colors.backgroundLight }}
+        backdropComponent={(props) => (
+          <BottomSheetBackdrop
+            {...props}
+            disappearsOnIndex={-1}
+            appearsOnIndex={0}
+            pressBehavior="close"
+          />
+        )}
+      >
+        <BottomSheetScrollView contentContainerStyle={{ padding: 20 }}>
+          <ModalHeader
+            title={selectedItem?.name || ""}
+            onClose={() => menuSheetRef.current?.close()}
+          />
+          <Text style={styles.modalPrice}>
+            {((selectedItem?.basePrice || 0) / 100).toFixed(2)}€
+          </Text>
+
+          {/* Sauces */}
+          {selectedItem?.sauces?.length > 0 && (
+            <View style={styles.optionSection}>
+              <Text style={styles.optionLabel}>Sauce</Text>
+              {selectedItem.sauces.map((sauce) => (
+                <TouchableOpacity
+                  key={sauce.name}
+                  style={[
+                    styles.optionBtn,
+                    selectedOptions["sauce"]?.includes(sauce.name) &&
+                      styles.optionBtnActive,
+                  ]}
+                  onPress={() => toggleOption("sauce", sauce.name, true)}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selectedOptions["sauce"]?.includes(sauce.name) &&
+                        styles.optionTextActive,
+                    ]}
+                  >
+                    {sauce.name}{" "}
+                    {sauce.extraPrice > 0 ? `+${sauce.extraPrice / 100}€` : ""}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {/* Customizations (garniture, pain, viandes...) */}
+          {selectedItem?.customizations?.map((custom) => (
+            <View key={custom.label} style={styles.optionSection}>
+              <Text style={styles.optionLabel}>{custom.label}</Text>
+              {custom.options.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.optionBtn,
+                    selectedOptions[custom.label]?.includes(option) &&
+                      styles.optionBtnActive,
+                  ]}
+                  onPress={() =>
+                    toggleOption(
+                      custom.label,
+                      option,
+                      custom.label === "Garniture" ||
+                        custom.label.includes("Choix des viandes"),
+                      custom.label.includes("Choix des viandes") ? 2 : null,
+                    )
+                  }
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selectedOptions[custom.label]?.includes(option) &&
+                        styles.optionTextActive,
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))}
+
+          {/* Suppléments */}
+          {selectedItem?.supplements?.length > 0 && (
+            <View style={styles.optionSection}>
+              <Text style={styles.optionLabel}>Suppléments</Text>
+              {selectedItem.supplements.map((sup) => (
+                <TouchableOpacity
+                  key={sup.name}
+                  style={[
+                    styles.optionBtn,
+                    selectedOptions["supplements"]?.includes(sup.name) &&
+                      styles.optionBtnActive,
+                  ]}
+                  onPress={() => toggleOption("supplements", sup.name, true)}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selectedOptions["supplements"]?.includes(sup.name) &&
+                        styles.optionTextActive,
+                    ]}
+                  >
+                    {sup.name} +{(sup.price / 100).toFixed(2)}€
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </BottomSheetScrollView>
+
+        {/* Boutons fixes en bas */}
+
+        <TouchableOpacity style={styles.addToCartBtn} onPress={handleAddToCart}>
+          <Text style={styles.addToCartText}>Ajouter au panier</Text>
+        </TouchableOpacity>
+      </BottomSheet>
+
+      {/* modal du panier */}
+      <BottomSheet
+        ref={cartSheetRef}
+        index={-1}
+        snapPoints={["10%"]}
+        enablePanDownToClose={true}
+        backgroundStyle={{ backgroundColor: colors.backgroundLight }}
+        backdropComponent={(props) => (
+          <BottomSheetBackdrop
+            {...props}
+            disappearsOnIndex={-1}
+            appearsOnIndex={0}
+            pressBehavior="close"
+          />
+        )}
+      >
+        <BottomSheetScrollView contentContainerStyle={{ padding: 20 }}>
+          <Text style={styles.modalTitle}>Votre panier</Text>
+
+          {cartItems.length === 0 ? (
+            <Text style={styles.emptyCartText}>Panier vide</Text>
+          ) : (
+            <>
+              {cartItems.map((item, index) => (
+                <View key={index} style={styles.cartItem}>
+                  <View style={styles.cartItemInfo}>
+                    <Text style={styles.menuName}>{item.menuItem.name}</Text>
+                    <View>
+                      {item.selectedOptions &&
+                        Object.entries(item.selectedOptions).map(
+                          ([label, options], i) => (
+                            <Text key={i} style={styles.menuDesc}>
+                              {label} : {options.join(", ")}
+                            </Text>
+                          ),
+                        )}
+                    </View>
+                    <Text style={styles.menuPrice}>
+                      {(calculateItemPrice(item) / 100).toFixed(2)}€ x{" "}
+                      {item.quantity}
+                    </Text>
+                  </View>
+                  <View style={styles.cartItemActions}>
                     <TouchableOpacity
-                      key={option}
-                      style={[
-                        styles.optionBtn,
-                        selectedOptions[custom.label]?.includes(option) &&
-                          styles.optionBtnActive,
-                      ]}
                       onPress={() =>
-                        toggleOption(
-                          custom.label,
-                          option,
-                          custom.label === "Garniture", // true = multiple, false = unique
-                        )
+                        item.quantity > 1
+                          ? handleAddQuantity({
+                              ...item,
+                              menuItem: {
+                                ...item.menuItem,
+                                basePrice: -item.menuItem.basePrice,
+                              },
+                            })
+                          : dispatch(removeFromCart(index))
                       }
                     >
-                      <Text
-                        style={[
-                          styles.optionText,
-                          selectedOptions[custom.label]?.includes(option) &&
-                            styles.optionTextActive,
-                        ]}
-                      >
-                        {option}
-                      </Text>
+                      <Text style={styles.decreaseQuantityBtn}>-1</Text>
                     </TouchableOpacity>
-                  ))}
+                    <TouchableOpacity onPress={() => handleAddQuantity(item)}>
+                      <Text style={styles.addQuantityBtn}>+1</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))}
 
-              {/* Suppléments */}
-              {selectedItem?.supplements?.length > 0 && (
-                <View style={styles.optionSection}>
-                  <Text style={styles.optionLabel}>Suppléments</Text>
-                  {selectedItem.supplements.map((sup) => (
-                    <TouchableOpacity
-                      key={sup.name}
-                      style={[
-                        styles.optionBtn,
-                        selectedOptions["supplements"]?.includes(sup.name) &&
-                          styles.optionBtnActive,
-                      ]}
-                      onPress={() =>
-                        toggleOption("supplements", sup.name, true)
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.optionText,
-                          selectedOptions["supplements"]?.includes(sup.name) &&
-                            styles.optionTextActive,
-                        ]}
-                      >
-                        {sup.name} +{(sup.price / 100).toFixed(2)}€
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </ScrollView>
-
-            {/* Boutons modal */}
-
-            <TouchableOpacity
-              style={styles.addToCartBtn}
-              onPress={handleAddToCart}
-            >
-              <Text style={styles.addToCartText}>Ajouter au panier</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.cancelText}>Annuler</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+              <Text style={styles.cartTotal}>
+                Total : {(totalPrice / 100).toFixed(2)}€
+              </Text>
+              <Button title="Procéder au paiement" onPress={() => {}} />
+            </>
+          )}
+        </BottomSheetScrollView>
+      </BottomSheet>
+    </GestureHandlerRootView>
   );
 }
 
@@ -600,6 +774,17 @@ const styles = StyleSheet.create({
   filterBtnActive: { backgroundColor: colors.primary },
   filterText: { fontFamily: fonts.family.semibold, color: colors.textMuted },
   filterTextActive: { color: colors.textWhite },
+  filterScrollContainer: {
+    position: "relative",
+  },
+  filterScrollShadow: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 40,
+    pointerEvents: "none",
+  },
   menuCard: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -618,6 +803,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  linkBtnDisabled: {
+    backgroundColor: colors.border,
+    opacity: 0.6,
+  },
+  phoneDisabled: {
+    color: colors.textMuted,
   },
   menuInfo: { flex: 1, marginRight: 12 },
   menuName: { fontSize: 16, fontFamily: fonts.family.semibold },
@@ -677,19 +869,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.family.bold,
     fontSize: 16,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: colors.backgroundLight,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    maxHeight: "80%",
-  },
-  modalTitle: { fontSize: 20, fontFamily: fonts.family.bold, marginBottom: 4 },
   modalPrice: {
     fontSize: 16,
     fontFamily: fonts.family.semibold,
@@ -716,19 +895,19 @@ const styles = StyleSheet.create({
     fontFamily: fonts.family.semibold,
   },
   addToCartBtn: {
+    marginBottom: 20,
+    marginHorizontal: 16,
+    borderTopColor: colors.border,
     backgroundColor: colors.primary,
     padding: 16,
     borderRadius: 16,
     alignItems: "center",
-    marginTop: 8,
   },
   addToCartText: {
     color: colors.textWhite,
     fontFamily: fonts.family.bold,
     fontSize: 16,
   },
-  cancelBtn: { padding: 12, alignItems: "center" },
-  cancelText: { color: colors.textLight, fontFamily: fonts.family.regular },
   lockedContainer: {
     flex: 1,
     justifyContent: "center",
@@ -776,31 +955,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  reviewsBtn: {
-    backgroundColor: colors.backgroundCream,
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
   reviewsBtnLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   reviewsBtnText: {
     fontFamily: fonts.family.semibold,
     fontSize: fonts.size.small,
     color: colors.primary,
-  },
-  reviewsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  reviewsTitle: {
-    fontFamily: fonts.family.bold,
-    fontSize: fonts.size.h3,
-    color: colors.textDark,
   },
   reviewsRating: { flexDirection: "row", alignItems: "center", gap: 4 },
   reviewsRatingText: {
@@ -865,5 +1024,99 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  modalTitle: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.h3,
+    color: colors.textDark,
+    marginBottom: 20,
+  },
+  cartItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: colors.backgroundCream,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+  },
+  cartItemInfo: {
+    flex: 1,
+  },
+  cartItemActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  addQuantityBtn: {
+    backgroundColor: colors.primary,
+    color: colors.textWhite,
+    fontFamily: fonts.family.bold,
+    fontSize: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    overflow: "hidden",
+  },
+  decreaseQuantityBtn: {
+    backgroundColor: colors.textMuted,
+    color: colors.textWhite,
+    fontFamily: fonts.family.bold,
+    fontSize: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    overflow: "hidden",
+  },
+  cartTotal: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.h4,
+    color: colors.textDark,
+    marginVertical: 16,
+  },
+  emptyCartText: {
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
+    color: colors.textMuted,
+    textAlign: "center",
+    marginTop: 24,
+  },
+  bottomSheetContent: { padding: 24 },
+  hoursHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  hoursTitle: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.h3,
+    color: colors.textDark,
+  },
+  hoursRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 6,
+    borderRadius: 12,
+  },
+  hoursDay: {
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.small,
+    color: colors.textMuted,
+  },
+  hoursText: {
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.small,
+    color: colors.textMuted,
+  },
+  hoursEmpty: {
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.small,
+    color: colors.textMuted,
+    textAlign: "center",
+    marginTop: 16,
   },
 });

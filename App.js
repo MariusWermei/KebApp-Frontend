@@ -15,6 +15,7 @@ import {
 import * as SplashScreen from "expo-splash-screen";
 import * as Linking from "expo-linking";
 import colors from "./constants/colors";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Redux + Persist
 import { Provider, useSelector } from "react-redux";
@@ -209,15 +210,17 @@ export default function App() {
   };
 
   return (
-    <Provider store={store}>
-      <PersistGate persistor={persistor}>
-        <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-          <NavigationContainer linking={linking} ref={navigationRef}>
-            <AppNavigator />
-          </NavigationContainer>
-        </View>
-      </PersistGate>
-    </Provider>
+    <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
+      <Provider store={store}>
+        <PersistGate persistor={persistor}>
+          <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+            <NavigationContainer linking={linking} ref={navigationRef}>
+              <AppNavigator />
+            </NavigationContainer>
+          </View>
+        </PersistGate>
+      </Provider>
+    </GestureHandlerRootView>
   );
 }
 
