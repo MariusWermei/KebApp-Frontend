@@ -19,7 +19,7 @@ import fonts from "../constants/fonts";
 
 import { useDispatch } from "react-redux";
 import { setToken } from "../reducers/user";
-import { setUser } from "../reducers/user";
+import { setUser, setFavorites } from "../reducers/user";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -58,6 +58,14 @@ export default function LoginScreen() {
         console.log("🔍 Backend retourne:", data.user); // Vérifie les points ici
         dispatch(setToken(data.token));
         dispatch(setUser(data.user)); // Passe tout l'objet, pas juste le username
+        // Charger les favoris
+        const favResponse = await fetch(`${API_URL}/users/favorites`, {
+          headers: { Authorization: `Bearer ${data.token}` },
+        });
+        const favData = await favResponse.json();
+        if (favData.result) {
+          dispatch(setFavorites(favData.favorites.map((r) => r._id)));
+        }
         if (fromOnboarding) {
           navigation.reset({
             index: 0,

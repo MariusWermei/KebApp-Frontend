@@ -42,6 +42,17 @@ const userSlice = createSlice({
       state.preferences = [];
       state.hasOnboarded = false;
     },
+    setFavorites: (state, action) => {
+      state.favorites = action.payload;
+    },
+    addFavorite: (state, action) => {
+      if (!state.favorites.includes(action.payload)) {
+        state.favorites.push(action.payload);
+      }
+    },
+    removeFavorite: (state, action) => {
+      state.favorites = state.favorites.filter((id) => id !== action.payload);
+    },
   },
 });
 
@@ -52,5 +63,8 @@ export const {
   setHasOnboarded,
   logout,
   resetOnboarding,
+  setFavorites,
+  addFavorite,
+  removeFavorite,
 } = userSlice.actions;
 export default userSlice.reducer;

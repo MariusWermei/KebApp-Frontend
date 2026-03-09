@@ -1,7 +1,11 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSelector, useDispatch } from "react-redux";
+import { addFavorite, removeFavorite } from "../reducers/user";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function RestaurantCard({
   restaurant,
@@ -9,6 +13,37 @@ export default function RestaurantCard({
   onPress,
   preferences = [],
 }) {
+  const dispatch = useDispatch();
+  const token = useSelector((state) => state.user.token);
+  const favorites = useSelector((state) => state.user.favorites);
+  const isFavorite = favorites.includes(restaurant._id);
+
+  const toggleFavorite = async () => {
+    if (!token) return;
+
+    if (isFavorite) {
+      dispatch(removeFavorite(restaurant._id));
+      await fetch(`${API_URL}/users/favorites`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ restaurantId: restaurant._id }),
+      });
+    } else {
+      dispatch(addFavorite(restaurant._id));
+      await fetch(`${API_URL}/users/favorites`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ restaurantId: restaurant._id }),
+      });
+    }
+  };
+
   const isHorizontal = variant === "horizontal";
   const isMap = variant === "map";
   const formattedDistance = restaurant.distance
@@ -41,8 +76,12 @@ export default function RestaurantCard({
           style={[styles.image, isMap && styles.imageMap]}
           resizeMode="cover"
         />
-        <TouchableOpacity style={styles.heartBtn}>
-          <Ionicons name="heart-outline" size={22} color={colors.textWhite} />
+        <TouchableOpacity style={styles.heartBtn} onPress={toggleFavorite}>
+          <Ionicons
+            name={isFavorite ? "heart" : "heart-outline"}
+            size={22}
+            color={isFavorite ? colors.primary : colors.textWhite}
+          />
         </TouchableOpacity>
       </View>
 

@@ -27,7 +27,6 @@ export default function HomeScreen() {
 
   const token = useSelector((state) => state.user.token);
   const preferences = useSelector((state) => state.user.preferences);
-
   const [search, setSearch] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
