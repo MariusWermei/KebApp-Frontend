@@ -42,30 +42,47 @@ export default function HomeScreen() {
       setCoords(userCoords);
       console.log("COORDONNES DE L'UTILISATEUR =>>", userCoords);
 
-      // 2. Fetch restaurants
-      let restaurantsUrl = `${API_URL}/restaurants?limit=10`;
+      const SORT_TAGS = ["📍 près de vous", "⭐ mieux notés"];
+      const backendTags = selectedTags.filter((t) => !SORT_TAGS.includes(t));
+      const isSortByDistance = selectedTags.includes("📍 près de vous");
+      const isSortByRating = selectedTags.includes("⭐ mieux notés");
+
+      let restaurantsUrl = `${API_URL}/restaurants`;
 
       if (search.trim()) {
-        restaurantsUrl = `${API_URL}/restaurants?search=${search.trim()}`;
-        // Pas de limit quand on cherche — on veut tous les résultats
+        restaurantsUrl += `?search=${search.trim()}`;
+      } else if (isSortByDistance || isSortByRating) {
+        // Tri spécial → 40 résultats max
+        restaurantsUrl += `?limit=40`;
+      } else if (backendTags.length === 0) {
+        // Aucun tag → affichage par défaut, 10 résultats
+        restaurantsUrl += `?limit=10`;
       }
+      // Si backendTags sélectionnés (poulet, agneau...) → pas de limit = tous les résultats
 
-      if (selectedTags.length > 0) {
-        // Si on a déjà un search, on ajoute les tags avec &
-        // Sinon on commence les params avec ?
+      if (backendTags.length > 0) {
         const separator = restaurantsUrl.includes("?") ? "&" : "?";
-        restaurantsUrl += `${separator}tags=${selectedTags.join(",")}`;
+        restaurantsUrl += `${separator}tags=${backendTags.join(",")}`;
       }
 
+      // On envoie TOUJOURS les coordonnées (pour avoir le champ distance sur les cards)
       if (userCoords) {
-        restaurantsUrl += `&latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
+        const separator = restaurantsUrl.includes("?") ? "&" : "?";
+        restaurantsUrl += `${separator}latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
       }
 
       console.log("🔍 Fetching restaurants from:", restaurantsUrl);
       const restoResponse = await fetch(restaurantsUrl);
       const restoData = await restoResponse.json();
+
       if (restoData.result) {
-        setRestaurants(restoData.restaurants);
+        let sorted = restoData.restaurants;
+
+        if (isSortByRating && !isSortByDistance) {
+          sorted = [...sorted].sort((a, b) => b.rating - a.rating);
+        }
+
+        setRestaurants(sorted);
       }
 
       // 3. Fetch recommandations (seulement si PAS de tags sélectionnés + connecté + préférences)

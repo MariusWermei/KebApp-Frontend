@@ -175,6 +175,8 @@ export default function MapScreen() {
         <TouchableOpacity
           style={styles.mapBtn}
           onPress={() => {
+            const maxDelta = 2;
+            if (currentRegion.latitudeDelta >= maxDelta) return;
             mapRef.current?.animateToRegion(
               {
                 ...currentRegion,

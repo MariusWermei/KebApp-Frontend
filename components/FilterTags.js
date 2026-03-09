@@ -3,6 +3,8 @@ import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 
 const FILTERS = [
+  "📍 près de vous",
+  "⭐ mieux notés",
   "poulet",
   "agneau",
   "veau",
