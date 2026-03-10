@@ -7,6 +7,7 @@ import fonts from "../constants/fonts";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { clearCart } from "../reducers/cart";
+import CustomAlert from "../components/CustomAlert";
 
 export default function PaymentScreen() {
   const navigation = useNavigation();
@@ -14,11 +15,18 @@ export default function PaymentScreen() {
   console.log("Card from Redux =>", cbCard);
   const cartItems = useSelector((state) => state.cart.items);
   const [selectedCardId, setSelectedCardId] = useState(null);
-
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertData, setAlertData] = useState({
+    type: "warning",
+    title: "",
+    message: "",
+  });
   const totalPrice = cartItems.reduce(
     (sum, i) => sum + i.quantity * i.menuItem.basePrice,
     0,
   );
+  const handleAlert = () => <CustomAlert message="uioub " />;
+
   console.log("Price from Redux =>", totalPrice);
   const dispatch = useDispatch();
   return (
@@ -39,20 +47,54 @@ export default function PaymentScreen() {
       </View>
       <View style={styles.paymentMethods}>
         <Button
+          height={50}
+          fontSize={20}
           backgroundColor="#191212ff"
           color={colors.textWhite}
           title="Apple Pay"
-          onPress={() => alert("Apple Pay non implémenté")}
+          onPress={() => {
+            setAlertData({
+              type: "warning",
+              title: "Non disponible",
+              message: "Apple Pay n'est pas encore implémenté.",
+            });
+            setAlertVisible(true);
+          }}
+        />
+        <CustomAlert
+          visible={alertVisible}
+          type={alertData.type}
+          title={alertData.title}
+          message={alertData.message}
+          onClose={() => setAlertVisible(false)}
         />
         <Button
+          height={50}
+          fontSize={20}
           backgroundColor="#4285F4"
           color={colors.textWhite}
           title="Google Pay"
-          onPress={() => alert("Google Pay non implémenté")}
+          onPress={() => {
+            setAlertData({
+              type: "warning",
+              title: "Non disponible",
+              message: "Google Pay n'est pas encore implémenté.",
+            });
+            setAlertVisible(true);
+          }}
+        />
+        <CustomAlert
+          visible={alertVisible}
+          type={alertData.type}
+          title={alertData.title}
+          message={alertData.message}
+          onClose={() => setAlertVisible(false)}
         />
       </View>
       <View style={styles.cardInfo}>
-        <Text style={styles.cardText}>électionnez une carte enregistrée :</Text>
+        <Text style={styles.cardText}>
+          Sélectionnez une carte enregistrée :
+        </Text>
         <ScrollView style={styles.cardActions}>
           {Array.isArray(cbCard) && cbCard.length > 0 ? (
             cbCard.map((card, index) => (
@@ -85,12 +127,14 @@ export default function PaymentScreen() {
         borderWidth={2}
         borderColor={colors.primary}
         color={colors.primary}
+        fontSize={16}
         title="Ajouter une carte"
         onPress={() => navigation.navigate("PaymentMethod")}
       />
       <View style={styles.footer}>
         <Button
           disabled={!selectedCardId}
+          fontSize={18}
           title="payer"
           onPress={() => {
             alert("Paiement accepté");

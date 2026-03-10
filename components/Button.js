@@ -11,6 +11,9 @@ export default function Button({
   borderColor,
   disabled,
   borderWidth,
+  height,
+  width,
+  fontSize,
 }) {
   return (
     <TouchableOpacity
@@ -20,11 +23,21 @@ export default function Button({
         borderColor ? { borderColor } : null,
         borderWidth ? { borderWidth } : null,
         disabled ? { opacity: 0.6 } : null,
+        height ? { height } : null,
+        width ? { width } : null,
       ]}
       onPress={onPress}
       disabled={disabled}
     >
-      <Text style={[styles.buttonText, color ? { color } : null]}>{title}</Text>
+      <Text
+        style={[
+          styles.buttonText,
+          color ? { color } : null,
+          fontSize ? { fontSize } : null,
+        ]}
+      >
+        {title}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -32,7 +45,9 @@ export default function Button({
 const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.primary,
-    paddingVertical: 16,
+    height: 60,
+    textAlign: "center",
+    justifyContent: "center",
     paddingHorizontal: 40,
     borderRadius: 14,
     width: "100%",
