@@ -69,6 +69,16 @@ const userSlice = createSlice({
       }
       state.cbCard = state.cbCard.filter((card) => card.id !== action.payload);
     },
+    removeAllUsers: (state) => {
+      state.token = null;
+      state.username = null;
+      state.email = null;
+      state.avatar = null;
+      state.preferences = [];
+      state.hasOnboarded = false;
+      state.favorites = [];
+      state.cbCard = [];
+    },
   },
 });
 
@@ -85,5 +95,6 @@ export const {
   setFavorites,
   addFavorite,
   removeFavorite,
+  removeAllUsers,
 } = userSlice.actions;
 export default userSlice.reducer;
