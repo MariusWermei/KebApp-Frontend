@@ -55,7 +55,6 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (data.result) {
-        console.log("🔍 Backend retourne:", data.user); // Vérifie les points ici
         dispatch(setToken(data.token));
         dispatch(setUser(data.user)); // Passe tout l'objet, pas juste le username
         if (fromOnboarding) {
@@ -70,7 +69,6 @@ export default function LoginScreen() {
         Alert.alert("Erreur", data.error || "Connexion impossible");
       }
     } catch (e) {
-      console.log(e);
       Alert.alert("Erreur réseau", "Impossible de contacter le serveur.");
     } finally {
       setLoading(false);

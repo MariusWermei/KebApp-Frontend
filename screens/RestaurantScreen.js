@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   Linking,
   Share,
+  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
@@ -23,11 +24,13 @@ import {
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 import Button from "../components/Button";
+import ModalBottomSheet from "../components/ModalBottomSheet";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
 
 export default function RestaurantScreen({ route, navigation }) {
+  const { height: screenHeight } = useWindowDimensions();
   const { restaurantName } = route.params;
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -65,6 +68,7 @@ export default function RestaurantScreen({ route, navigation }) {
     (sum, i) => sum + calculateItemPrice(i) * i.quantity,
     0,
   );
+  const cartSheetMaxDynamicHeight = Math.floor(screenHeight * 0.86);
   const Api_Url = process.env.EXPO_PUBLIC_API_URL;
   useEffect(() => {
     // Vide le panier si on change de restaurant
@@ -96,7 +100,7 @@ export default function RestaurantScreen({ route, navigation }) {
         message: `🥙 ${restaurant.name}\n📍 ${restaurant.address}\n⭐ ${restaurant.rating}/5\n\nDécouvre ce restaurant sur KebApp !`,
       });
     } catch (error) {
-      console.log(error);
+      // Error silently ignored
     }
   };
   const toggleOption = (label, option, multiple = true, maxCount = null) => {
@@ -375,7 +379,6 @@ export default function RestaurantScreen({ route, navigation }) {
           style={styles.cartBar}
           onPress={() => {
             cartSheetRef.current?.expand();
-            console.log("reducer =>", cartItems, restaurantName);
           }}
         >
           <View style={styles.cartCount}>
@@ -386,130 +389,93 @@ export default function RestaurantScreen({ route, navigation }) {
             {(totalPrice / 100).toFixed(2)}€
           </Text>
         </TouchableOpacity>
-        {/* Bouton DEV reset panier */}
-        {totalCount > 0 && (
-          <TouchableOpacity
-            style={styles.devBtn}
-            onPress={() => dispatch(clearCart())}
-          >
-            <Text style={styles.devBtnText}>🗑️ DEV — Vider le panier</Text>
-          </TouchableOpacity>
-        )}
       </SafeAreaView>
-      {/* Modal des horaires */}
-      <BottomSheet
-        ref={hourSheetRef}
-        index={-1}
-        snapPoints={["50%"]}
-        enablePanDownToClose
-        backgroundStyle={{ backgroundColor: colors.backgroundLight }}
-        backdropComponent={(props) => (
-          <BottomSheetBackdrop
-            {...props}
-            disappearsOnIndex={-1}
-            appearsOnIndex={0}
-            pressBehavior="close"
-          />
-        )}
-      >
-        <BottomSheetScrollView
-          contentContainerStyle={styles.bottomSheetContent}
-        >
-          {/* Header */}
-          <View style={styles.hoursHeader}>
-            <Text style={styles.hoursTitle}>Horaires</Text>
-
-            <Text
-              style={[
-                styles.openBadgeText,
-                { color: isOpenNow ? "#1dca5dff" : "#EF4444" },
-              ]}
-            >
-              {isOpenNow ? "Ouvert" : "Fermé"}
-            </Text>
-          </View>
-
-          {/* Liste horaires */}
-          {restaurant.openingHours?.length > 0 ? (
-            restaurant.openingHours.map((line, index) => {
-              const [day, hours] = line.split(": ");
-              return (
-                <View key={index} style={styles.hoursRow}>
-                  <Text style={styles.hoursDay}>{day}</Text>
-                  <Text style={styles.hoursText}>{hours || line}</Text>
-                </View>
-              );
-            })
-          ) : (
-            <Text style={styles.hoursEmpty}>Horaires non disponibles</Text>
-          )}
-        </BottomSheetScrollView>
-      </BottomSheet>
-
-      {/* BottomSheet des avis */}
-      <BottomSheet
-        ref={reviewsSheetRef}
-        index={-1}
+      {/* Modale horaires */}
+      <ModalBottomSheet
+        sheetRef={hourSheetRef}
         enableDynamicSizing
         maxDynamicContentSize={600}
-        enablePanDownToClose
-        backgroundStyle={{ backgroundColor: colors.backgroundLight }}
-        backdropComponent={(props) => (
-          <BottomSheetBackdrop
-            {...props}
-            disappearsOnIndex={-1}
-            appearsOnIndex={0}
-            pressBehavior="close"
-          />
-        )}
       >
-        <BottomSheetScrollView contentContainerStyle={{ padding: 20 }}>
-          <View style={styles.reviewsRating}>
-            <Ionicons name="star" size={20} color={colors.primary} />
-            <Text style={styles.reviewsRatingText}>{restaurant.rating}</Text>
-            <Text style={styles.reviewsTotal}>({restaurant.totalRatings})</Text>
-          </View>
+        <View style={styles.hoursHeader}>
+          <Text style={styles.hoursTitle}>Horaires</Text>
 
-          {restaurant.reviews?.map((review, index) => (
-            <View key={index} style={styles.reviewCard}>
-              {/* Auteur */}
-              <View style={styles.reviewAuthor}>
-                {review.profilePhoto ? (
-                  <Image
-                    source={{ uri: review.profilePhoto }}
-                    style={styles.reviewAvatar}
-                  />
-                ) : (
-                  <View style={styles.reviewAvatarPlaceholder}>
-                    <Text style={styles.reviewAvatarLetter}>
-                      {review.author?.[0]?.toUpperCase()}
-                    </Text>
-                  </View>
-                )}
-                <View>
-                  <Text style={styles.reviewAuthorName}>{review.author}</Text>
-                  <Text style={styles.reviewDate}>{review.date}</Text>
+          <Text
+            style={[
+              styles.openBadgeText,
+              { color: isOpenNow ? "#1dca5dff" : "#EF4444" },
+            ]}
+          >
+            {isOpenNow ? "Ouvert" : "Fermé"}
+          </Text>
+        </View>
+
+        {/* Liste horaires */}
+        {restaurant.openingHours?.length > 0 ? (
+          restaurant.openingHours.map((line, index) => {
+            const [day, hours] = line.split(": ");
+            return (
+              <View key={index} style={styles.hoursRow}>
+                <Text style={styles.hoursDay}>{day}</Text>
+                <Text style={styles.hoursText}>{hours || line}</Text>
+              </View>
+            );
+          })
+        ) : (
+          <Text style={styles.hoursEmpty}>Horaires non disponibles</Text>
+        )}
+      </ModalBottomSheet>
+
+      {/* BottomSheet des avis */}
+      <ModalBottomSheet
+        sheetRef={reviewsSheetRef}
+        enableDynamicSizing
+        maxDynamicContentSize={600}
+      >
+        <View style={styles.reviewsRating}>
+          <Ionicons name="star" size={20} color={colors.primary} />
+          <Text style={styles.reviewsRatingText}>{restaurant.rating}</Text>
+          <Text style={styles.reviewsTotal}>({restaurant.totalRatings})</Text>
+        </View>
+
+        {restaurant.reviews?.map((review, index) => (
+          <View key={index} style={styles.reviewCard}>
+            {/* Auteur */}
+            <View style={styles.reviewAuthor}>
+              {review.profilePhoto ? (
+                <Image
+                  source={{ uri: review.profilePhoto }}
+                  style={styles.reviewAvatar}
+                />
+              ) : (
+                <View style={styles.reviewAvatarPlaceholder}>
+                  <Text style={styles.reviewAvatarLetter}>
+                    {review.author?.[0]?.toUpperCase()}
+                  </Text>
                 </View>
+              )}
+              <View>
+                <Text style={styles.reviewAuthorName}>{review.author}</Text>
+                <Text style={styles.reviewDate}>{review.date}</Text>
               </View>
-
-              {/* Étoiles */}
-              <View style={styles.reviewStars}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Ionicons
-                    key={star}
-                    name={star <= review.rating ? "star" : "star-outline"}
-                    size={14}
-                    color={colors.primary}
-                  />
-                ))}
-              </View>
-
-              {/* Commentaire */}
-              <Text style={styles.reviewText}>{review.text}</Text>
             </View>
-          ))}
-        </BottomSheetScrollView>
-      </BottomSheet>
+
+            {/* Étoiles */}
+            <View style={styles.reviewStars}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Ionicons
+                  key={star}
+                  name={star <= review.rating ? "star" : "star-outline"}
+                  size={14}
+                  color={colors.primary}
+                />
+              ))}
+            </View>
+
+            {/* Commentaire */}
+            <Text style={styles.reviewText}>{review.text}</Text>
+          </View>
+        ))}
+      </ModalBottomSheet>
 
       {/* BottomSheet configuration plat */}
       <BottomSheet
@@ -635,78 +601,61 @@ export default function RestaurantScreen({ route, navigation }) {
       </BottomSheet>
 
       {/* modal du panier */}
-      <BottomSheet
-        ref={cartSheetRef}
-        index={-1}
+      <ModalBottomSheet
+        sheetRef={cartSheetRef}
         enableDynamicSizing
-        maxDynamicContentSize={600}
-        enablePanDownToClose={true}
-        backgroundStyle={{ backgroundColor: colors.backgroundLight }}
-        backdropComponent={(props) => (
-          <BottomSheetBackdrop
-            {...props}
-            disappearsOnIndex={-1}
-            appearsOnIndex={0}
-            pressBehavior="close"
-          />
-        )}
-      >
-        <BottomSheetScrollView
-          contentContainerStyle={{
-            padding: 20,
-            paddingBottom: cartItems.length > 0 ? 120 : 20,
-          }}
-        >
-          <Text style={styles.modalTitle}>Votre panier</Text>
-
-          {cartItems.length === 0 ? (
-            <Text style={styles.emptyCartText}>Panier vide</Text>
-          ) : (
+        maxDynamicContentSize={cartSheetMaxDynamicHeight}
+        contentContainerStyle={{ paddingBottom: cartItems.length > 0 ? 120 : 20 }}
+        footer={
+          cartItems.length > 0 ? (
             <>
-              {cartItems.map((item, index) => (
-                <View key={index} style={styles.cartItem}>
-                  <View style={styles.cartItemInfo}>
-                    <Text style={styles.menuName}>{item.menuItem.name}</Text>
-                    <View>
-                      {item.selectedOptions &&
-                        Object.entries(item.selectedOptions).map(
-                          ([label, options], i) => (
-                            <Text key={i} style={styles.menuDesc}>
-                              {label} : {options.join(", ")}
-                            </Text>
-                          ),
-                        )}
-                    </View>
-                    <Text style={styles.menuPrice}>
-                      {(calculateItemPrice(item) / 100).toFixed(2)}€ x{" "}
-                      {item.quantity}
-                    </Text>
-                  </View>
-                  <View style={styles.cartItemActions}>
-                    <TouchableOpacity
-                      onPress={() => handleDecreaseQuantity(index)}
-                    >
-                      <Text style={styles.decreaseQuantityBtn}>-1</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleAddQuantity(item)}>
-                      <Text style={styles.addQuantityBtn}>+1</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
+              <Text style={styles.cartTotal}>
+                Total : {(totalPrice / 100).toFixed(2)}€
+              </Text>
+              <Button title="Procéder au paiement" onPress={() => {}} />
             </>
-          )}
-        </BottomSheetScrollView>
+          ) : null
+        }
+        footerStyle={styles.cartFooterFixed}
+      >
+        <Text style={styles.modalTitle}>Votre panier</Text>
 
-        {cartItems.length > 0 && (
-          <View style={styles.cartFooterFixed}>
-            <Text style={styles.cartTotal}>
-              Total : {(totalPrice / 100).toFixed(2)}€
-            </Text>
-            <Button title="Procéder au paiement" onPress={() => {}} />
-          </View>
+        {cartItems.length === 0 ? (
+          <Text style={styles.emptyCartText}>Panier vide</Text>
+        ) : (
+          <>
+            {cartItems.map((item, index) => (
+              <View key={index} style={styles.cartItem}>
+                <View style={styles.cartItemInfo}>
+                  <Text style={styles.menuName}>{item.menuItem.name}</Text>
+                  <View>
+                    {item.selectedOptions &&
+                      Object.entries(item.selectedOptions).map(
+                        ([label, options], i) => (
+                          <Text key={i} style={styles.menuDesc}>
+                            {label} : {options.join(", ")}
+                          </Text>
+                        ),
+                      )}
+                  </View>
+                  <Text style={styles.menuPrice}>
+                    {(calculateItemPrice(item) / 100).toFixed(2)}€ x{" "}
+                    {item.quantity}
+                  </Text>
+                </View>
+                <View style={styles.cartItemActions}>
+                  <TouchableOpacity onPress={() => handleDecreaseQuantity(index)}>
+                    <Text style={styles.decreaseQuantityBtn}>-1</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleAddQuantity(item)}>
+                    <Text style={styles.addQuantityBtn}>+1</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </>
         )}
-      </BottomSheet>
+      </ModalBottomSheet>
     </GestureHandlerRootView>
   );
 }
@@ -1076,7 +1025,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 24,
   },
-  bottomSheetContent: { padding: 24 },
   hoursHeader: {
     flexDirection: "row",
     justifyContent: "space-between",

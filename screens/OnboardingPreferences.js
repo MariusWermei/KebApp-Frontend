@@ -53,7 +53,7 @@ export default function OnboardingPreferences({ navigation }) {
           body: JSON.stringify({ preferences: selectedTags }),
         });
       } catch (error) {
-        console.log("Erreur sauvegarde preferences:", error);
+        // Error silently ignored
       }
     }
 

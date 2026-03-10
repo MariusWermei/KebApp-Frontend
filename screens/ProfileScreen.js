@@ -73,7 +73,7 @@ export default function ProfileScreen() {
           setPoints(data.points);
         }
       } catch (e) {
-        console.log("❌ Erreur fetch points:", e);
+        // Error silently ignored
       } finally {
         setLoadingPoints(false);
       }

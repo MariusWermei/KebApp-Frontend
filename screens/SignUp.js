@@ -73,7 +73,6 @@ export default function SignInScreen() {
         Alert.alert("Erreur", data.error || "Connexion impossible");
       }
     } catch (err) {
-      console.log(err);
       Alert.alert("Erreur réseau", "Impossible de contacter le serveur.");
     } finally {
       setLoading(false);

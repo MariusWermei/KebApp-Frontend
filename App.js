@@ -174,17 +174,12 @@ export default function App() {
   // 🔗 Écouter les deep links entrants
   useEffect(() => {
     const subscription = Linking.addEventListener("url", ({ url }) => {
-      console.log("🔗 Deep link reçu:", url);
       const parsed = Linking.parse(url);
-      console.log("🔗 Parsed:", parsed);
 
       // Extract token from query params
       const token = parsed.queryParams?.token;
       if (token) {
-        console.log("✅ Token extrait:", token);
         navigationRef.current?.navigate("ResetPassword", { token });
-      } else {
-        console.log("❌ Token non trouvé dans les params");
       }
     });
 

@@ -40,7 +40,6 @@ export default function HomeScreen() {
       const locationStr = await AsyncStorage.getItem("userLocation");
       const userCoords = locationStr ? JSON.parse(locationStr) : null;
       setCoords(userCoords);
-      console.log("COORDONNES DE L'UTILISATEUR =>>", userCoords);
 
       // 2. Fetch restaurants
       let restaurantsUrl = `${API_URL}/restaurants?limit=10`;
@@ -68,12 +67,6 @@ export default function HomeScreen() {
       }
 
       // 3. Fetch recommandations (seulement si PAS de tags sélectionnés + connecté + préférences)
-      console.log(" Check recommendations:", {
-        selectedTags: selectedTags.length,
-        token: !!token,
-        preferences: preferences.length,
-      });
-
       if (
         selectedTags.length === 0 &&
         !search.trim() &&
@@ -90,11 +83,7 @@ export default function HomeScreen() {
 
         if (recoData.result) {
           setRecommendations(recoData.restaurants);
-        } else {
-          console.log(" Recommendations error:", recoData.error);
         }
-      } else {
-        console.log(" Skipping recommendations (conditions not met)");
       }
     }
 
