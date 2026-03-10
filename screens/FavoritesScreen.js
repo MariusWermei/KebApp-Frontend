@@ -9,7 +9,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { setFavorites as setFavoritesRedux } from "../reducers/user";
 import RestaurantCard from "../components/RestaurantCard";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
@@ -20,6 +21,8 @@ export default function FavoritesScreen() {
   const navigation = useNavigation();
   const token = useSelector((state) => state.user.token);
   const preferences = useSelector((state) => state.user.preferences);
+  const dispatch = useDispatch();
+  const reduxFavorites = useSelector((state) => state.user.favorites);
 
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +36,7 @@ export default function FavoritesScreen() {
         const data = await response.json();
         if (data.result) {
           setFavorites(data.favorites);
+          dispatch(setFavoritesRedux(data.favorites.map((r) => r._id)));
         }
       } catch (err) {
         // Error silently ignored
@@ -43,6 +47,10 @@ export default function FavoritesScreen() {
 
     fetchFavorites();
   }, []);
+
+  useEffect(() => {
+    setFavorites((prev) => prev.filter((r) => reduxFavorites.includes(r._id)));
+  }, [reduxFavorites]);
 
   return (
     <SafeAreaView style={styles.safe}>

@@ -264,7 +264,7 @@ export default function ProfileScreen() {
           <Text style={styles.resetButtonText}>RESET (dev)</Text>
         </TouchableOpacity>
 
-        <Text style={styles.footer}>Kebapp v1.0.0 • Built with love</Text>
+        <Text style={styles.footer}>Kebapp v1.0.0 • Fait avec amour</Text>
       </ScrollView>
     </SafeAreaView>
   );

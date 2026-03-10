@@ -6,7 +6,7 @@ import {
   FlatList,
   Text,
 } from "react-native";
-import MapView, { Marker, Callout } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import colors from "../constants/colors";
@@ -134,22 +134,22 @@ export default function MapScreen() {
               longitude: restaurant.location.coordinates[0],
             }}
             onPress={() => handleMarkerPress(restaurant)}
+            anchor={{ x: 0.5, y: 1 }}
           >
-            <View
-              style={[
-                styles.marker,
-                selectedId === restaurant._id && styles.markerSelected,
-              ]}
-            >
-              <Ionicons name="restaurant" size={16} color={colors.textWhite} />
-            </View>
-            <Callout tooltip>
-              <View style={styles.calloutBubble}>
-                <Text style={styles.calloutText} numberOfLines={1}>
-                  {restaurant.name}
-                </Text>
+            <View style={styles.markerWrapper}>
+              <View
+                style={[
+                  styles.marker,
+                  selectedId === restaurant._id && styles.markerSelected,
+                ]}
+              >
+                <Ionicons
+                  name="restaurant"
+                  size={16}
+                  color={colors.textWhite}
+                />
               </View>
-            </Callout>
+            </View>
           </Marker>
         ))}
       </MapView>
@@ -175,6 +175,8 @@ export default function MapScreen() {
         <TouchableOpacity
           style={styles.mapBtn}
           onPress={() => {
+            const maxDelta = 2;
+            if (currentRegion.latitudeDelta >= maxDelta) return;
             mapRef.current?.animateToRegion(
               {
                 ...currentRegion,
@@ -263,6 +265,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textDark,
     borderWidth: 3,
     borderColor: colors.primary,
+  },
+  markerWrapper: {
+    alignItems: "center",
   },
   calloutBubble: {
     backgroundColor: colors.textDark,

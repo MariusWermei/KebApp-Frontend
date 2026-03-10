@@ -27,6 +27,10 @@ const userSlice = createSlice({
     },
     logout: (state) => {
       state.token = null;
+      state.username = null;
+      state.email = null;
+      state.avatar = null;
+      console.log("Token reducer =>", state.token);
       // On ne reset PAS hasOnboarded — même après un logout,
       // l'utilisateur ne doit pas revoir l'onboarding
     },
@@ -36,6 +40,17 @@ const userSlice = createSlice({
       state.token = null;
       state.preferences = [];
       state.hasOnboarded = false;
+    },
+    setFavorites: (state, action) => {
+      state.favorites = action.payload;
+    },
+    addFavorite: (state, action) => {
+      if (!state.favorites.includes(action.payload)) {
+        state.favorites.push(action.payload);
+      }
+    },
+    removeFavorite: (state, action) => {
+      state.favorites = state.favorites.filter((id) => id !== action.payload);
     },
   },
 });
@@ -47,5 +62,8 @@ export const {
   setHasOnboarded,
   logout,
   resetOnboarding,
+  setFavorites,
+  addFavorite,
+  removeFavorite,
 } = userSlice.actions;
 export default userSlice.reducer;

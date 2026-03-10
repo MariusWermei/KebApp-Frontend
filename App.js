@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { View } from "react-native";
+import { View, Image, Text } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -72,6 +72,9 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function TabNavigator() {
+  const avatar = useSelector((state) => state.user.avatar);
+  const username = useSelector((state) => state.user.username);
+
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -79,12 +82,60 @@ function TabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textLight,
-        tabBarIcon: ({ color, size }) => {
+        tabBarIcon: ({ color, size, focused }) => {
+          // Profile tab: show user avatar or initial
+          if (route.name === "Profile") {
+            if (avatar) {
+              return (
+                <Image
+                  source={{ uri: avatar }}
+                  style={{
+                    width: size,
+                    height: size,
+                    borderRadius: size / 2,
+                    borderWidth: focused ? 2 : 0,
+                    borderColor: focused ? colors.primary : "transparent",
+                  }}
+                />
+              );
+            } else if (username) {
+              const initial = username[0].toUpperCase();
+              return (
+                <View
+                  style={{
+                    width: size,
+                    height: size,
+                    borderRadius: size / 2,
+                    backgroundColor: colors.primary,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    borderWidth: focused ? 2 : 0,
+                    borderColor: colors.primary,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "white",
+                      fontSize: size / 2,
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {initial}
+                  </Text>
+                </View>
+              );
+            } else {
+              return (
+                <Ionicons name="person-outline" size={size} color={color} />
+              );
+            }
+          }
+
+          // Other tabs: show icons
           let iconName = "";
           if (route.name === "Home") iconName = "home";
           if (route.name === "Map") iconName = "map-outline";
           if (route.name === "Commandes") iconName = "bag-handle-outline";
-          if (route.name === "Profile") iconName = "person-outline";
           return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}

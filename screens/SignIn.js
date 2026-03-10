@@ -19,7 +19,7 @@ import fonts from "../constants/fonts";
 
 import { useDispatch } from "react-redux";
 import { setToken } from "../reducers/user";
-import { setUser } from "../reducers/user";
+import { setUser, setFavorites } from "../reducers/user";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -57,6 +57,14 @@ export default function LoginScreen() {
       if (data.result) {
         dispatch(setToken(data.token));
         dispatch(setUser(data.user)); // Passe tout l'objet, pas juste le username
+        // Charger les favoris
+        const favResponse = await fetch(`${API_URL}/users/favorites`, {
+          headers: { Authorization: `Bearer ${data.token}` },
+        });
+        const favData = await favResponse.json();
+        if (favData.result) {
+          dispatch(setFavorites(favData.favorites.map((r) => r._id)));
+        }
         if (fromOnboarding) {
           navigation.reset({
             index: 0,
@@ -123,9 +131,9 @@ export default function LoginScreen() {
                 </View>
               </View>
 
-              <Text style={styles.title}>Welcome Back</Text>
+              <Text style={styles.title}>Bon retour !</Text>
               <Text style={styles.subtitle}>
-                Enter your details to access your account
+                Entre tes identifiants pour accéder à ton compte
               </Text>
 
               {/* Email */}
@@ -144,9 +152,9 @@ export default function LoginScreen() {
 
               {/* Password */}
               <View style={styles.passwordRow}>
-                <Text style={styles.label}>Password</Text>
+                <Text style={styles.label}>Mot de passe</Text>
                 <TouchableOpacity onPress={handleForgotPassword}>
-                  <Text style={styles.forgot}>Forgot Password?</Text>
+                  <Text style={styles.forgot}>Mot de passe oublié ?</Text>
                 </TouchableOpacity>
               </View>
 
@@ -174,14 +182,14 @@ export default function LoginScreen() {
 
               {/* Login button */}
               <Button
-                title={loading ? "Login ..." : "Login"}
+                title={loading ? "Connexion ..." : "Se connecter"}
                 onPress={handleSignin}
               />
 
               {/* Divider */}
               <View style={styles.dividerRow}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>Or continue with</Text>
+                <Text style={styles.dividerText}>Ou continuer avec</Text>
                 <View style={styles.dividerLine} />
               </View>
 
@@ -222,7 +230,7 @@ export default function LoginScreen() {
                     size={18}
                     color={colors.textMuted}
                   />
-                  <Text style={styles.bottomText}> Back to Sign Up</Text>
+                  <Text style={styles.bottomText}> Retour à l'inscription</Text>
                 </TouchableOpacity>
               )}
             </View>

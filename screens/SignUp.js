@@ -107,7 +107,7 @@ export default function SignInScreen() {
                 }
               >
                 {fromOnboarding ? (
-                  <Text style={styles.skip}>Skip</Text>
+                  <Text style={styles.skip}>Passer</Text>
                 ) : (
                   <Ionicons name="close" size={24} color={colors.textDark} />
                 )}
@@ -120,18 +120,18 @@ export default function SignInScreen() {
                 </View>
               </View>
 
-              <Text style={styles.title}>Create Account</Text>
+              <Text style={styles.title}>Créer un compte</Text>
               <Text style={styles.subtitle}>
-                Enter your details to access your account
+                Entre tes informations pour créer ton compte
               </Text>
 
               {/* Username */}
-              <Text style={styles.label}>Username</Text>
+              <Text style={styles.label}>Nom d'utilisateur</Text>
               <View style={styles.inputWrap}>
                 <TextInput
                   value={username}
                   onChangeText={setUsername}
-                  placeholder="Choose your username"
+                  placeholder="Choisis ton pseudo"
                   placeholderTextColor={colors.textLight}
                   autoCapitalize="none"
                   style={styles.input}
@@ -153,12 +153,12 @@ export default function SignInScreen() {
               </View>
 
               {/* Password */}
-              <Text style={styles.label}>Password</Text>
+              <Text style={styles.label}>Mot de passe</Text>
               <View style={styles.inputWrap}>
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="Enter your password"
+                  placeholder="Entre ton mot de passe"
                   placeholderTextColor={colors.textLight}
                   secureTextEntry={!showPwd}
                   style={[styles.input, { paddingRight: 44 }]}
@@ -178,14 +178,14 @@ export default function SignInScreen() {
 
               {/* Button */}
               <Button
-                title={loading ? "Signing Up..." : "Sign Up"}
+                title={loading ? "Inscription..." : "S'inscrire"}
                 onPress={handleSignup}
               />
 
               {/* Divider OR */}
               <View style={styles.dividerRow}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>OR</Text>
+                <Text style={styles.dividerText}>OU</Text>
                 <View style={styles.dividerLine} />
               </View>
 
@@ -196,27 +196,27 @@ export default function SignInScreen() {
               >
                 <View style={styles.secondaryInner}>
                   <View style={styles.googleDot} />
-                  <Text style={styles.secondaryText}>Continue with Google</Text>
+                  <Text style={styles.secondaryText}>Continuer avec Google</Text>
                 </View>
               </TouchableOpacity>
 
               {fromOnboarding && (
                 <View style={styles.backRow}>
-                  <Text style={styles.backText}>Already have an account? </Text>
+                  <Text style={styles.backText}>Déjà un compte ? </Text>
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate("SignIn", { fromOnboarding })
                     }
                   >
-                    <Text style={styles.backLink}>Sign In</Text>
+                    <Text style={styles.backLink}>Se connecter</Text>
                   </TouchableOpacity>
                 </View>
               )}
 
               <Text style={styles.terms}>
-                By signing in, you agree to our{" "}
-                <Text style={styles.link}>Terms</Text> and{" "}
-                <Text style={styles.link}>Privacy Policy</Text>
+                En t'inscrivant, tu acceptes nos{" "}
+                <Text style={styles.link}>Conditions</Text> et notre{" "}
+                <Text style={styles.link}>Politique de confidentialité</Text>
               </Text>
             </View>
           </View>

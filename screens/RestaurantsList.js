@@ -33,27 +33,42 @@ export default function RestaurantsList() {
       const locationStr = await AsyncStorage.getItem("userLocation");
       const userCoords = locationStr ? JSON.parse(locationStr) : null;
 
-      // 2. Construire l'URL avec les paramètres dynamiques
+      const SORT_TAGS = ["📍 près de vous", "⭐ mieux notés"];
+      const backendTags = selectedTags.filter((t) => !SORT_TAGS.includes(t));
+      const isSortByDistance = selectedTags.includes("📍 près de vous");
+      const isSortByRating = selectedTags.includes("⭐ mieux notés");
+
+      // 3. Construire l'URL
       let url = `${API_URL}/restaurants?`;
 
       if (search.trim()) {
         url += `search=${search.trim()}&`;
       }
 
-      if (selectedTags.length > 0) {
-        url += `tags=${selectedTags.join(",")}&`;
+      if (backendTags.length > 0) {
+        url += `tags=${backendTags.join(",")}&`;
+      }
+
+      if (isSortByDistance || isSortByRating) {
+        url += `limit=40&`;
       }
 
       if (userCoords) {
         url += `latitude=${userCoords.latitude}&longitude=${userCoords.longitude}&`;
       }
 
-      // 3. Fetch
+      // 4. Fetch
       const response = await fetch(url);
       const data = await response.json();
 
       if (data.result) {
-        setRestaurants(data.restaurants);
+        let sorted = data.restaurants;
+
+        if (isSortByRating && !isSortByDistance) {
+          sorted = [...sorted].sort((a, b) => b.rating - a.rating);
+        }
+
+        setRestaurants(sorted);
       }
     }
 
