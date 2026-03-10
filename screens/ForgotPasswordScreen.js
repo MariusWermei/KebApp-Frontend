@@ -31,8 +31,6 @@ export default function ForgotPasswordScreen({ navigation }) {
     }
 
     try {
-      console.log("📧 Envoi forgot-password pour:", email);
-
       const res = await fetch(`${API_URL}/users/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -40,7 +38,6 @@ export default function ForgotPasswordScreen({ navigation }) {
       });
 
       const data = await res.json();
-      console.log("📨 Réponse serveur:", data);
 
       if (data.result) {
         setStatus("sent");
@@ -49,7 +46,6 @@ export default function ForgotPasswordScreen({ navigation }) {
         setError(data.error || "Erreur serveur");
       }
     } catch (e) {
-      console.log("❌ Erreur:", e);
       setStatus("idle");
       setError("Erreur réseau");
     }

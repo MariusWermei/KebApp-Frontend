@@ -56,16 +56,27 @@ export default function ResetPasswordScreen({ route, navigation }) {
   // 🎉 Success Screen
   if (success) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.backgroundLight }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.backgroundLight }]}
+      >
         <View style={styles.successBox}>
           <View style={styles.successCircle}>
-            <Ionicons name="checkmark-outline" size={80} color={colors.primary} />
+            <Ionicons
+              name="checkmark-outline"
+              size={80}
+              color={colors.primary}
+            />
           </View>
           <Text style={styles.successTitle}>Mot de passe modifié ✅</Text>
           <Text style={styles.successSubtitle}>
-            Ton mot de passe a été changé avec succès. Tu es redirigé vers l'accueil...
+            Ton mot de passe a été changé avec succès. Tu es redirigé vers
+            l'accueil...
           </Text>
-          <ActivityIndicator color={colors.primary} size="large" style={{ marginTop: 24 }} />
+          <ActivityIndicator
+            color={colors.primary}
+            size="large"
+            style={{ marginTop: 24 }}
+          />
         </View>
       </SafeAreaView>
     );
@@ -80,7 +91,7 @@ export default function ResetPasswordScreen({ route, navigation }) {
     if (password.length < 8) {
       Alert.alert(
         "Erreur",
-        "Le mot de passe doit faire au moins 8 caractères."
+        "Le mot de passe doit faire au moins 8 caractères.",
       );
       return;
     }
@@ -114,7 +125,10 @@ export default function ResetPasswordScreen({ route, navigation }) {
           });
         }, 2000);
       } else {
-        Alert.alert("Erreur", data.error || "Impossible de changer le mot de passe");
+        Alert.alert(
+          "Erreur",
+          data.error || "Impossible de changer le mot de passe",
+        );
       }
     } catch (error) {
       console.log("❌ Erreur:", error);
@@ -142,107 +156,107 @@ export default function ResetPasswordScreen({ route, navigation }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-        {/* Header */}
-        <View style={styles.header}>
-          <Ionicons
-            name="lock-closed-outline"
-            size={50}
-            color={colors.primary}
-            style={{ marginBottom: 12 }}
-          />
-          <Text style={styles.title}>Nouveau mot de passe</Text>
-          <Text style={styles.subtitle}>
-            Crée un mot de passe sécurisé pour accéder à ton compte
-          </Text>
-        </View>
-
-        {/* Form */}
-        <View style={styles.form}>
-          {/* Password */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nouveau mot de passe</Text>
-            <View style={styles.inputWrap}>
-              <TextInput
-                placeholder="••••••••"
-                placeholderTextColor={colors.textLight}
-                secureTextEntry={!showPwd}
-                value={password}
-                onChangeText={setPassword}
-                editable={!loading}
-                style={styles.input}
-              />
-              <TouchableOpacity
-                onPress={() => setShowPwd(!showPwd)}
-                style={styles.eyeBtn}
-              >
-                <Ionicons
-                  name={showPwd ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color={colors.textLight}
-                />
-              </TouchableOpacity>
-            </View>
+          {/* Header */}
+          <View style={styles.header}>
+            <Ionicons
+              name="lock-closed-outline"
+              size={50}
+              color={colors.primary}
+              style={{ marginBottom: 12 }}
+            />
+            <Text style={styles.title}>Nouveau mot de passe</Text>
+            <Text style={styles.subtitle}>
+              Crée un mot de passe sécurisé pour accéder à ton compte
+            </Text>
           </View>
 
-          {/* Confirm Password */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Confirmer le mot de passe</Text>
-            <View style={styles.inputWrap}>
-              <TextInput
-                placeholder="••••••••"
-                placeholderTextColor={colors.textLight}
-                secureTextEntry={!showConfirm}
-                value={confirm}
-                onChangeText={setConfirm}
-                editable={!loading}
-                style={styles.input}
-              />
-              <TouchableOpacity
-                onPress={() => setShowConfirm(!showConfirm)}
-                style={styles.eyeBtn}
-              >
-                <Ionicons
-                  name={showConfirm ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color={colors.textLight}
+          {/* Form */}
+          <View style={styles.form}>
+            {/* Password */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Nouveau mot de passe</Text>
+              <View style={styles.inputWrap}>
+                <TextInput
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.textLight}
+                  secureTextEntry={!showPwd}
+                  value={password}
+                  onChangeText={setPassword}
+                  editable={!loading}
+                  style={styles.input}
                 />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setShowPwd(!showPwd)}
+                  style={styles.eyeBtn}
+                >
+                  <Ionicons
+                    name={showPwd ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color={colors.textLight}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
+
+            {/* Confirm Password */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Confirmer le mot de passe</Text>
+              <View style={styles.inputWrap}>
+                <TextInput
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.textLight}
+                  secureTextEntry={!showConfirm}
+                  value={confirm}
+                  onChangeText={setConfirm}
+                  editable={!loading}
+                  style={styles.input}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirm(!showConfirm)}
+                  style={styles.eyeBtn}
+                >
+                  <Ionicons
+                    name={showConfirm ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color={colors.textLight}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Submit Button */}
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleReset}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={20}
+                    color="white"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={styles.buttonText}>Changer le mot de passe</Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
 
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleReset}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <>
-                <Ionicons
-                  name="checkmark-circle-outline"
-                  size={20}
-                  color="white"
-                  style={{ marginRight: 8 }}
-                />
-                <Text style={styles.buttonText}>Changer le mot de passe</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Security Note */}
-        <View style={styles.note}>
-          <Ionicons
-            name="shield-checkmark-outline"
-            size={16}
-            color={colors.primary}
-          />
-          <Text style={styles.noteText}>
-            Utilise un mot de passe fort (min. 8 caractères)
-          </Text>
-        </View>
+          {/* Security Note */}
+          <View style={styles.note}>
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={16}
+              color={colors.primary}
+            />
+            <Text style={styles.noteText}>
+              Utilise un mot de passe fort (min. 8 caractères)
+            </Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

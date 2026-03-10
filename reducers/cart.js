@@ -27,6 +27,16 @@ const cartSlice = createSlice({
     removeFromCart: (state, action) => {
       state.items = state.items.filter((_, index) => index !== action.payload);
     },
+    decreaseQuantity: (state, action) => {
+      const index = action.payload;
+      if (state.items[index]) {
+        if (state.items[index].quantity > 1) {
+          state.items[index].quantity -= 1;
+        } else {
+          state.items = state.items.filter((_, i) => i !== index);
+        }
+      }
+    },
     clearCart: (state) => {
       state.items = [];
       state.restaurantName = null;
@@ -34,5 +44,6 @@ const cartSlice = createSlice({
   },
 });
 
-export const { addToCart, removeFromCart, clearCart } = cartSlice.actions;
+export const { addToCart, removeFromCart, decreaseQuantity, clearCart } =
+  cartSlice.actions;
 export default cartSlice.reducer;

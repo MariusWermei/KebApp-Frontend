@@ -39,7 +39,7 @@ export default function FavoritesScreen() {
           dispatch(setFavoritesRedux(data.favorites.map((r) => r._id)));
         }
       } catch (err) {
-        console.log("Erreur fetch favorites:", err);
+        // Error silently ignored
       } finally {
         setLoading(false);
       }

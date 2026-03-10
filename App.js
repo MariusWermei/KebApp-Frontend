@@ -15,6 +15,7 @@ import {
 import * as SplashScreen from "expo-splash-screen";
 import * as Linking from "expo-linking";
 import colors from "./constants/colors";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Redux + Persist
 import { Provider, useSelector } from "react-redux";
@@ -224,17 +225,12 @@ export default function App() {
   // 🔗 Écouter les deep links entrants
   useEffect(() => {
     const subscription = Linking.addEventListener("url", ({ url }) => {
-      console.log("🔗 Deep link reçu:", url);
       const parsed = Linking.parse(url);
-      console.log("🔗 Parsed:", parsed);
 
       // Extract token from query params
       const token = parsed.queryParams?.token;
       if (token) {
-        console.log("✅ Token extrait:", token);
         navigationRef.current?.navigate("ResetPassword", { token });
-      } else {
-        console.log("❌ Token non trouvé dans les params");
       }
     });
 
@@ -260,15 +256,17 @@ export default function App() {
   };
 
   return (
-    <Provider store={store}>
-      <PersistGate persistor={persistor}>
-        <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-          <NavigationContainer linking={linking} ref={navigationRef}>
-            <AppNavigator />
-          </NavigationContainer>
-        </View>
-      </PersistGate>
-    </Provider>
+    <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
+      <Provider store={store}>
+        <PersistGate persistor={persistor}>
+          <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+            <NavigationContainer linking={linking} ref={navigationRef}>
+              <AppNavigator />
+            </NavigationContainer>
+          </View>
+        </PersistGate>
+      </Provider>
+    </GestureHandlerRootView>
   );
 }
 

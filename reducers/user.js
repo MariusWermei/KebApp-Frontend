@@ -12,22 +12,18 @@ const userSlice = createSlice({
   },
   reducers: {
     setUser: (state, action) => {
-      console.log("Reducer setUser reçoit:", action.payload);
       state.username = action.payload.username;
       state.email = action.payload.email;
       state.avatar = action.payload.avatar;
     },
     setToken: (state, action) => {
       state.token = action.payload;
-      console.log("Token reducer =>", state.token);
     },
     setPreferences: (state, action) => {
       state.preferences = action.payload;
-      console.log("Preferences reducer =>", state.preferences);
     },
     setHasOnboarded: (state) => {
       state.hasOnboarded = true;
-      console.log("Has onboarded from reducer =>", state.hasOnboarded);
     },
     logout: (state) => {
       state.token = null;
