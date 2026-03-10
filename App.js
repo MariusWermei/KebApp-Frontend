@@ -46,6 +46,7 @@ import AddressScreen from "./screens/AddressScreen";
 import PasswordScreen from "./screens/PasswordScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
+import PaymentScreen from "./screens/PayementScreen";
 
 // Config redux-persist
 const persistConfig = {
@@ -164,6 +165,7 @@ function AppNavigator() {
           />
           <Stack.Screen name="RestaurantsList" component={RestaurantsList} />
           <Stack.Screen name="Restaurant" component={RestaurantScreen} />
+          <Stack.Screen name="Payment" component={PaymentScreen} />
           <Stack.Screen name="Favorites" component={FavoritesScreen} />
           <Stack.Screen name="Preferences" component={PreferencesEditScreen} />
           <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />

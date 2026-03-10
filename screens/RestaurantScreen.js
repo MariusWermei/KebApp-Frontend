@@ -605,14 +605,21 @@ export default function RestaurantScreen({ route, navigation }) {
         sheetRef={cartSheetRef}
         enableDynamicSizing
         maxDynamicContentSize={cartSheetMaxDynamicHeight}
-        contentContainerStyle={{ paddingBottom: cartItems.length > 0 ? 120 : 20 }}
+        contentContainerStyle={{
+          paddingBottom: cartItems.length > 0 ? 120 : 20,
+        }}
         footer={
           cartItems.length > 0 ? (
             <>
               <Text style={styles.cartTotal}>
                 Total : {(totalPrice / 100).toFixed(2)}€
               </Text>
-              <Button title="Procéder au paiement" onPress={() => {}} />
+              <Button
+                title="Procéder au paiement"
+                onPress={() => {
+                  navigation.navigate("Payment");
+                }}
+              />
             </>
           ) : null
         }
@@ -644,7 +651,9 @@ export default function RestaurantScreen({ route, navigation }) {
                   </Text>
                 </View>
                 <View style={styles.cartItemActions}>
-                  <TouchableOpacity onPress={() => handleDecreaseQuantity(index)}>
+                  <TouchableOpacity
+                    onPress={() => handleDecreaseQuantity(index)}
+                  >
                     <Text style={styles.decreaseQuantityBtn}>-1</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => handleAddQuantity(item)}>

@@ -14,16 +14,18 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useState, useEffect, useRef } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
+import { useSelector, useDispatch } from "react-redux";
+import { addCbCard, removeCbCard } from "../reducers/user";
 
 export default function PaymentMethodScreen() {
   const navigation = useNavigation();
   const timeoutRef = useRef(null);
-
+  const dispatch = useDispatch();
+  const savedCards = useSelector((state) => state.user?.cbCard ?? []);
+  console.log("Saved cards from Redux =>", savedCards);
   // 💳 États cartes
-  const [savedCards, setSavedCards] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteCardId, setDeleteCardId] = useState(null);
@@ -56,23 +58,10 @@ export default function PaymentMethodScreen() {
 
   // 📍 Charger les cartes au montage
   useEffect(() => {
-    loadSavedCards();
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
-
-  // 💾 Charger les cartes sauvegardées
-  const loadSavedCards = async () => {
-    try {
-      const saved = await AsyncStorage.getItem("savedCards");
-      if (saved) {
-        setSavedCards(JSON.parse(saved));
-      }
-    } catch (error) {
-      console.error("❌ Erreur chargement cartes:", error);
-    }
-  };
 
   // ✅ Ajouter une nouvelle carte
   const handleAddCard = async () => {
@@ -121,10 +110,7 @@ export default function PaymentMethodScreen() {
         last4,
         expiry: `${expiryMonth}/${expiryYear}`,
       };
-
-      const updated = [...savedCards, newCard];
-      await AsyncStorage.setItem("savedCards", JSON.stringify(updated));
-      setSavedCards(updated);
+      dispatch(addCbCard(newCard));
 
       // Reset form
       setFormData({
@@ -155,9 +141,7 @@ export default function PaymentMethodScreen() {
     if (!deleteCardId) return;
 
     try {
-      const updated = savedCards.filter((card) => card.id !== deleteCardId);
-      await AsyncStorage.setItem("savedCards", JSON.stringify(updated));
-      setSavedCards(updated);
+      dispatch(removeCbCard(deleteCardId));
       showCustomAlert("success", "Succès", "Carte supprimée!");
       setShowDeleteConfirm(false);
       setDeleteCardId(null);

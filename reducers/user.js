@@ -9,6 +9,8 @@ const userSlice = createSlice({
     avatar: null,
     preferences: [],
     hasOnboarded: false,
+    favorites: [],
+    cbCard: [],
   },
   reducers: {
     setUser: (state, action) => {
@@ -52,12 +54,30 @@ const userSlice = createSlice({
     removeFavorite: (state, action) => {
       state.favorites = state.favorites.filter((id) => id !== action.payload);
     },
+    addCbCard: (state, action) => {
+      if (!Array.isArray(state.cbCard)) {
+        state.cbCard = [];
+      }
+      state.cbCard.push(action.payload);
+    },
+    setCbCards: (state, action) => {
+      state.cbCard = Array.isArray(action.payload) ? action.payload : [];
+    },
+    removeCbCard: (state, action) => {
+      if (!Array.isArray(state.cbCard)) {
+        state.cbCard = [];
+      }
+      state.cbCard = state.cbCard.filter((card) => card.id !== action.payload);
+    },
   },
 });
 
 export const {
   setToken,
   setUser,
+  removeCbCard,
+  addCbCard,
+  setCbCards,
   setPreferences,
   setHasOnboarded,
   logout,
