@@ -12,6 +12,7 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import CustomAlert from "../components/CustomAlert";
 import { useNavigation } from "@react-navigation/native";
 import { useState, useEffect, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -54,9 +55,6 @@ export default function AddressScreen() {
   const showCustomAlert = (type, title, message) => {
     setAlertData({ type, title, message });
     setShowAlert(true);
-    // Auto-fermeture après 3 secondes pour success, 4 pour error
-    const timeout = type === "success" ? 3000 : 4000;
-    timeoutRef.current = setTimeout(() => setShowAlert(false), timeout);
   };
 
   // 📍 Charger l'adresse depuis la position au montage
@@ -540,67 +538,13 @@ export default function AddressScreen() {
         </View>
       </Modal>
 
-      {/* 🎯 MODALE: ALERTES PERSONNALISÉES */}
-      <Modal
+      <CustomAlert
+        type={alertData.type}
+        title={alertData.title}
+        message={alertData.message}
         visible={showAlert}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setShowAlert(false)}
-      >
-        <TouchableOpacity
-          style={styles.alertOverlay}
-          onPress={() => {
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-            setShowAlert(false);
-          }}
-          activeOpacity={1}
-        >
-          <TouchableOpacity
-            style={[
-              styles.alertBox,
-              alertData.type === "success" && { borderLeftColor: "#4CAF50" },
-              alertData.type === "error" && { borderLeftColor: "#F44336" },
-              alertData.type === "warning" && { borderLeftColor: "#FF9800" },
-            ]}
-            onPress={() => {}}
-            activeOpacity={1}
-          >
-            {/* Icône */}
-            <View
-              style={[
-                styles.alertIcon,
-                alertData.type === "success" && {
-                  backgroundColor: "#4CAF50",
-                },
-                alertData.type === "error" && {
-                  backgroundColor: "#F44336",
-                },
-                alertData.type === "warning" && {
-                  backgroundColor: "#FF9800",
-                },
-              ]}
-            >
-              <Ionicons
-                name={
-                  alertData.type === "success"
-                    ? "checkmark-circle"
-                    : alertData.type === "error"
-                      ? "close-circle"
-                      : "alert-circle"
-                }
-                size={24}
-                color="white"
-              />
-            </View>
-
-            {/* Contenu */}
-            <View style={styles.alertContent}>
-              <Text style={styles.alertTitle}>{alertData.title}</Text>
-              <Text style={styles.alertMessage}>{alertData.message}</Text>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => setShowAlert(false)}
+      />
     </SafeAreaView>
   );
 }
