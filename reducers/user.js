@@ -49,10 +49,12 @@ const userSlice = createSlice({
     addFavorite: (state, action) => {
       if (!state.favorites.includes(action.payload)) {
         state.favorites.push(action.payload);
+        console.log("favorites reducer =>", state.favorites);
       }
     },
     removeFavorite: (state, action) => {
       state.favorites = state.favorites.filter((id) => id !== action.payload);
+      console.log("favorites reducer =>", state.favorites);
     },
     addCbCard: (state, action) => {
       if (!Array.isArray(state.cbCard)) {

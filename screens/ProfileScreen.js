@@ -56,7 +56,8 @@ export default function ProfileScreen() {
   const username = useSelector((state) => state.user.username);
   const email = useSelector((state) => state.user.email);
   const avatar = useSelector((state) => state.user.avatar);
-
+  const user = useSelector((state) => state.user);
+  const cart = useSelector((state) => state.cart);
   const [points, setPoints] = useState(0);
   const [loadingPoints, setLoadingPoints] = useState(false);
 
@@ -165,7 +166,17 @@ export default function ProfileScreen() {
             dispatch(removeAllCart());
           }}
           activeOpacity={0.7}
-        ></TouchableOpacity>
+        >
+          <Ionicons name="refresh-outline" size={20} color={colors.primary} />
+          <Text
+            style={[
+              styles.resetButtonText,
+              { width: "80%", textAlign: "center" },
+            ]}
+          >
+            RESET (dev)
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
