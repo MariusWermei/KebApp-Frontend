@@ -47,6 +47,7 @@ export default function RestaurantScreen({ route, navigation }) {
 
   const token = useSelector((state) => state.user.token);
   const cartRestaurantName = useSelector((state) => state.cart.restaurantName);
+
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
   const totalCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);

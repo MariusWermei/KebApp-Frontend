@@ -199,27 +199,27 @@ export default function PaymentMethodScreen() {
       const items = cartItems.map((cartItem) => {
         console.log("🔍 cartItem.menuItem:", cartItem.menuItem);
         return {
-          nom: cartItem.menuItem.name,
-          quantite: cartItem.quantity,
-          prix_unitaire: cartItem.menuItem.basePrice,
+          name: cartItem.menuItem.name,
+          quantity: cartItem.quantity,
+          unit_price: cartItem.menuItem.basePrice,
         };
       });
 
       console.log("✅ Items transformés:", JSON.stringify(items, null, 2));
 
       // Calculer le prix total
-      const prix_total = items.reduce(
-        (sum, item) => sum + item.quantite * item.prix_unitaire,
+      const total_price = items.reduce(
+        (sum, item) => sum + item.quantity * item.unit_price,
         0,
       );
 
       // Préparer le payload (sans utilisateur_id dedans)
       const payload = {
         restaurant: {
-          nom: restaurantName,
+          name: restaurantName,
         },
         items,
-        prix_total: Math.round(prix_total * 100) / 100,
+        total_price: Math.round(total_price * 100) / 100,
       };
 
       console.log("📤 Envoi de la commande:", payload);
