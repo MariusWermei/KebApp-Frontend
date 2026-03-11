@@ -201,15 +201,15 @@ export default function PaymentMethodScreen() {
         return {
           name: cartItem.menuItem.name,
           quantity: cartItem.quantity,
-          unit_price: cartItem.menuItem.basePrice,
+          unitPrice: cartItem.menuItem.basePrice,
         };
       });
 
       console.log("✅ Items transformés:", JSON.stringify(items, null, 2));
 
       // Calculer le prix total
-      const total_price = items.reduce(
-        (sum, item) => sum + item.quantity * item.unit_price,
+      const totalPrice = items.reduce(
+        (sum, item) => sum + item.quantity * item.unitPrice,
         0,
       );
 
@@ -219,7 +219,7 @@ export default function PaymentMethodScreen() {
           name: restaurantName,
         },
         items,
-        total_price: Math.round(total_price * 100) / 100,
+        totalPrice: Math.round(totalPrice * 100) / 100,
       };
 
       console.log("📤 Envoi de la commande:", payload);
