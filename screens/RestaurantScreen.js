@@ -11,6 +11,7 @@ import {
   Linking,
   Share,
   useWindowDimensions,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
@@ -33,11 +34,12 @@ import { addFavorite, removeFavorite } from "../reducers/user";
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function RestaurantScreen({ route, navigation }) {
-  const { height: screenHeight } = useWindowDimensions();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const { restaurantName } = route.params;
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(null);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   const [selectedItem, setSelectedItem] = useState(null); // plat sélectionné pour la modal
   const [selectedOptions, setSelectedOptions] = useState({}); // options choisies
   const cartSheetRef = useRef(null);
@@ -84,6 +86,8 @@ export default function RestaurantScreen({ route, navigation }) {
     fetch(`${Api_Url}/restaurants/${encodeURIComponent(restaurantName)}`)
       .then((res) => res.json())
       .then((data) => {
+        console.log("Data restaurant reçue:", data);
+        console.log("Photos:", data.restaurant?.photos);
         if (data.result) {
           setRestaurant(data.restaurant);
           const firstCategory = data.restaurant.menu[0]?.category;
@@ -120,6 +124,9 @@ export default function RestaurantScreen({ route, navigation }) {
       });
     }
   };
+  {
+    // console.log("photo restaurant", restaurant.photos);
+  }
 
   const openModal = (item) => {
     setSelectedItem(item);
@@ -231,16 +238,56 @@ export default function RestaurantScreen({ route, navigation }) {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
         <ScrollView>
-          {/* Photo de couverture */}
-          {restaurant.photos?.[0] ? (
-            <Image
-              source={{ uri: restaurant.photos[0] }}
-              style={styles.coverImage}
-            />
-          ) : (
-            <View style={styles.coverPlaceholder} />
-          )}
-
+          <View style={{ position: "relative" }}>
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={(e) => {
+                const x = e.nativeEvent.contentOffset.x;
+                setCarouselIndex(Math.round(x / screenWidth));
+              }}
+              scrollEventThrottle={16}
+              style={{ width: screenWidth }}
+            >
+              {/* Photo de couverture */}
+              {Array.isArray(restaurant.photos) &&
+              restaurant.photos.length > 0 ? (
+                restaurant.photos.map((photo, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri: photo }}
+                    style={[styles.coverImage, { width: screenWidth }]}
+                    onError={(error) =>
+                      console.log(`Erreur chargement photo ${index}:`, error)
+                    }
+                    onLoadStart={() =>
+                      console.log(`Chargement photo ${index}...`)
+                    }
+                  />
+                ))
+              ) : (
+                <View
+                  style={[styles.coverPlaceholder, { width: screenWidth }]}
+                />
+              )}
+            </ScrollView>
+            {/* Dots carousel par dessus l'image */}
+            {Array.isArray(restaurant.photos) &&
+              restaurant.photos.length > 1 && (
+                <View style={styles.carouselDotsOverlay} pointerEvents="none">
+                  {restaurant.photos.map((_, idx) => (
+                    <View
+                      key={idx}
+                      style={[
+                        styles.carouselDot,
+                        carouselIndex === idx && styles.carouselDotActive,
+                      ]}
+                    />
+                  ))}
+                </View>
+              )}
+          </View>
           {/* Bouton retour */}
           <View style={styles.headerButtons}>
             <TouchableOpacity
@@ -712,7 +759,42 @@ export default function RestaurantScreen({ route, navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.backgroundLight },
-  coverImage: { width: "100%", height: 220, resizeMode: "cover" },
+  coverImage: {
+    height: 220,
+    resizeMode: "cover",
+  },
+  carouselDotsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 8,
+    marginBottom: 8,
+    gap: 6,
+  },
+  carouselDotsOverlay: {
+    position: "absolute",
+    bottom: 18,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+    gap: 6,
+  },
+  carouselDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.border,
+    marginHorizontal: 2,
+  },
+  carouselDotActive: {
+    backgroundColor: colors.primary,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
   coverPlaceholder: {
     width: "100%",
     height: 220,

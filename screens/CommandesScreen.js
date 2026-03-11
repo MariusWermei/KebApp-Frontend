@@ -36,6 +36,12 @@ export default function CommandesScreen({ navigation }) {
         .then((data) => {
           if (data.result) {
             const orders = data.orders;
+
+            if (orders.length === 0) {
+              console.log("Aucune commande trouvée pour cet utilisateur.");
+              return;
+            }
+
             setOrders(orders);
             console.log("orders:", orders);
             console.log("data.orders:", orders[0].restaurant.name);
@@ -80,10 +86,29 @@ export default function CommandesScreen({ navigation }) {
         {/* Current Orders */}
         <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
           <Text style={styles.sectionTitle}>
-            Commandes en cours <Text style={styles.orangeDot}>•</Text>
+            Commandes en cours{' '}
+            <Text
+              style={
+                orders.filter((order) => !order.orderStatus.isFinalized).length === 0
+                  ? [styles.orangeDot, { color: '#222' }]
+                  : styles.orangeDot
+              }
+            >
+              •
+            </Text>
           </Text>
           {orders.filter((order) => !order.orderStatus.isFinalized).length ===
-            0 && <Text style={styles.emptyText}>Aucune commande en cours</Text>}
+            0 && (
+            <View style={styles.emptyContainer}>
+              <Ionicons
+                name="file-tray-outline"
+                size={48}
+                color={colors.gray}
+                style={{ marginBottom: 8 }}
+              />
+              <Text style={styles.emptyText}>Aucune commande en cours</Text>
+            </View>
+          )}
           {orders
             .filter((order) => !order.orderStatus.isFinalized)
             .map((order) => (
@@ -103,7 +128,10 @@ export default function CommandesScreen({ navigation }) {
                       {order.restaurant.name}
                     </Text>
                     <Text style={styles.orderNumber}>
-                      Commande #{order._id.slice(-4)}
+                      N° de commande :{" "}
+                      {order?.orderNumber?.slice(0, 3) +
+                        "..." +
+                        order?.orderNumber?.slice(-3)}
                     </Text>
                   </View>
                 </View>
@@ -160,13 +188,13 @@ export default function CommandesScreen({ navigation }) {
                     style={{ marginRight: 4 }}
                   />
                   <Text style={styles.arrivalText}>
-                    Arrivée prévue à{" "}
+                    Arrivée prévue à :{" "}
                     {order.estimatedArrivalTime
                       ? new Date(order.estimatedArrivalTime).toLocaleTimeString(
                           [],
                           { hour: "2-digit", minute: "2-digit" },
                         )
-                      : "En attente"}
+                      : "Tqt ca arrive frère"}
                   </Text>
                 </View>
 
@@ -224,7 +252,18 @@ export default function CommandesScreen({ navigation }) {
         >
           {orders.filter((order) => order.orderStatus.isFinalized).length ===
             0 && (
-            <Text style={styles.emptyText}>Aucune commande précédente</Text>
+            <View style={styles.emptyContainer}>
+              <Ionicons
+                name="time-outline"
+                size={48}
+                color={colors.gray}
+                style={{ marginBottom: 8 }}
+              />
+              <Text style={styles.emptyText}>
+                {" "}
+                Vos commandes apparaîtront ici une fois passées.
+              </Text>
+            </View>
           )}
           {orders
             .filter((order) => order.orderStatus.isFinalized)
@@ -393,10 +432,18 @@ const styles = StyleSheet.create({
     color: "#FF6600",
     fontSize: 18,
   },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 32,
+  },
   emptyText: {
     color: colors.gray,
-    fontSize: 15,
+    fontSize: 16,
+    fontWeight: "500",
     marginBottom: 10,
+    textAlign: "center",
+    letterSpacing: 0.2,
   },
   card: {
     backgroundColor: "#fff",
