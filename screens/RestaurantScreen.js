@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, use } from "react";
 import {
   View,
   Text,
@@ -28,6 +28,9 @@ import ModalBottomSheet from "../components/ModalBottomSheet";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
+import { addFavorite, removeFavorite } from "../reducers/user";
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function RestaurantScreen({ route, navigation }) {
   const { height: screenHeight } = useWindowDimensions();
@@ -47,7 +50,8 @@ export default function RestaurantScreen({ route, navigation }) {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
   const totalCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
-
+  const favorites = useSelector((state) => state.user.favorites);
+  const isFavorite = restaurant && (favorites || []).includes(restaurant._id);
   const calculateItemPrice = (item) => {
     let price = item.menuItem.basePrice;
 
@@ -88,6 +92,33 @@ export default function RestaurantScreen({ route, navigation }) {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  const toggleFavorite = async () => {
+    if (!token) return;
+
+    if (!restaurant) return;
+    if (isFavorite) {
+      dispatch(removeFavorite(restaurant._id));
+      await fetch(`${API_URL}/users/favorites`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ restaurantId: restaurant._id }),
+      });
+    } else {
+      dispatch(addFavorite(restaurant._id));
+      await fetch(`${API_URL}/users/favorites`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ restaurantId: restaurant._id }),
+      });
+    }
+  };
 
   const openModal = (item) => {
     setSelectedItem(item);
@@ -221,8 +252,17 @@ export default function RestaurantScreen({ route, navigation }) {
               <TouchableOpacity style={styles.headerBtn} onPress={handleShare}>
                 <Ionicons name="share-outline" size={20} color="#fff" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.headerBtn}>
-                <Ionicons name="heart-outline" size={20} color="#fff" />
+              <TouchableOpacity
+                style={styles.headerBtn}
+                onPress={() => {
+                  if (restaurant) toggleFavorite(restaurant._id);
+                }}
+              >
+                <Ionicons
+                  name={isFavorite ? "heart" : "heart-outline"}
+                  size={22}
+                  color={isFavorite ? colors.primary : colors.textWhite}
+                />
               </TouchableOpacity>
             </View>
           </View>

@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from "react-native";
 import Button from "../components/Button";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
@@ -38,6 +45,7 @@ export default function OnboardingPreferences({ navigation }) {
   };
 
   const handleNext = async () => {
+    Keyboard.dismiss(); // Ferme le clavier avant de naviguer
     // 1. Sauvegarde dans le store Redux (persisté automatiquement)
     dispatch(setPreferences(selectedTags));
 
@@ -68,47 +76,50 @@ export default function OnboardingPreferences({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.skipButton}
-        onPress={() =>
-          fromProfile
-            ? navigation.reset({ index: 0, routes: [{ name: "Main" }] })
-            : navigation.navigate("Geolocation")
-        }
-      >
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={() => {
+            Keyboard.dismiss();
+            fromProfile
+              ? navigation.reset({ index: 0, routes: [{ name: "Main" }] })
+              : navigation.navigate("Geolocation");
+          }}
+        >
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
 
-      <Text style={styles.title}>Qu'est-ce qui compte pour toi ?</Text>
-      <Text style={styles.subtitle}>
-        Sélectionne tes préférences pour des recommandations personnalisées.
-      </Text>
+        <Text style={styles.title}>Qu'est-ce qui compte pour toi ?</Text>
+        <Text style={styles.subtitle}>
+          Sélectionne tes préférences pour des recommandations personnalisées.
+        </Text>
 
-      <View style={styles.tagsContainer}>
-        {TAGS.map((tag) => (
-          <TouchableOpacity
-            key={tag}
-            style={[
-              styles.tag,
-              selectedTags.includes(tag) && styles.tagSelected,
-            ]}
-            onPress={() => toggleTag(tag)}
-          >
-            <Text
+        <View style={styles.tagsContainer}>
+          {TAGS.map((tag) => (
+            <TouchableOpacity
+              key={tag}
               style={[
-                styles.tagText,
-                selectedTags.includes(tag) && styles.tagTextSelected,
+                styles.tag,
+                selectedTags.includes(tag) && styles.tagSelected,
               ]}
+              onPress={() => toggleTag(tag)}
             >
-              {tag}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+              <Text
+                style={[
+                  styles.tagText,
+                  selectedTags.includes(tag) && styles.tagTextSelected,
+                ]}
+              >
+                {tag}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <Button title="Next →" onPress={handleNext} />
-    </View>
+        <Button title="Next →" onPress={handleNext} />
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 

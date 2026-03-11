@@ -49,10 +49,12 @@ const userSlice = createSlice({
     addFavorite: (state, action) => {
       if (!state.favorites.includes(action.payload)) {
         state.favorites.push(action.payload);
+        console.log("favorites reducer =>", state.favorites);
       }
     },
     removeFavorite: (state, action) => {
       state.favorites = state.favorites.filter((id) => id !== action.payload);
+      console.log("favorites reducer =>", state.favorites);
     },
     addCbCard: (state, action) => {
       if (!Array.isArray(state.cbCard)) {
@@ -68,6 +70,16 @@ const userSlice = createSlice({
         state.cbCard = [];
       }
       state.cbCard = state.cbCard.filter((card) => card.id !== action.payload);
+    },
+    removeAllUsers: (state) => {
+      state.token = null;
+      state.username = null;
+      state.email = null;
+      state.avatar = null;
+      state.preferences = [];
+      state.hasOnboarded = false;
+      state.favorites = [];
+      state.cbCard = [];
     },
   },
 });
@@ -85,5 +97,6 @@ export const {
   setFavorites,
   addFavorite,
   removeFavorite,
+  removeAllUsers,
 } = userSlice.actions;
 export default userSlice.reducer;

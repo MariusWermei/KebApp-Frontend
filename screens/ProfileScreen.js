@@ -20,7 +20,8 @@ import SettingRow from "../components/SettingRow";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { removeAllUsers } from "../reducers/user";
+import { removeAllCart } from "../reducers/cart";
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 // ==================== COMPONENTS ====================
@@ -55,7 +56,8 @@ export default function ProfileScreen() {
   const username = useSelector((state) => state.user.username);
   const email = useSelector((state) => state.user.email);
   const avatar = useSelector((state) => state.user.avatar);
-
+  const user = useSelector((state) => state.user);
+  const cart = useSelector((state) => state.cart);
   const [points, setPoints] = useState(0);
   const [loadingPoints, setLoadingPoints] = useState(false);
 
@@ -153,6 +155,26 @@ export default function ProfileScreen() {
           <Text style={styles.signupText}>
             Pas de compte ?{" "}
             <Text style={styles.signupBold}>Créer un compte</Text>
+          </Text>
+        </TouchableOpacity>
+        {/* RESET (DEV) */}
+        <TouchableOpacity
+          style={styles.resetButton}
+          onPress={async () => {
+            await AsyncStorage.clear();
+            dispatch(removeAllUsers());
+            dispatch(removeAllCart());
+          }}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="refresh-outline" size={20} color={colors.primary} />
+          <Text
+            style={[
+              styles.resetButtonText,
+              { width: "80%", textAlign: "center" },
+            ]}
+          >
+            RESET (dev)
           </Text>
         </TouchableOpacity>
       </View>
@@ -256,7 +278,8 @@ export default function ProfileScreen() {
           style={styles.resetButton}
           onPress={async () => {
             await AsyncStorage.clear();
-            dispatch(resetOnboarding());
+            dispatch(removeAllUsers());
+            dispatch(removeAllCart());
           }}
           activeOpacity={0.7}
         >
