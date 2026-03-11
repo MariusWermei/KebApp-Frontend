@@ -11,10 +11,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 export default function CommandesScreen({ navigation }) {
   const token = useSelector((state) => state.user.token);
+  const [orders, setOrders] = useState([]);
   useEffect(() => {
     console.log("token:", token);
     fetch("http://192.168.100.94:3000/commandes", {
@@ -26,8 +27,10 @@ export default function CommandesScreen({ navigation }) {
       .then((res) => res.json())
       .then((data) => {
         if (data.result) {
-          console.log("orders:", data);
-          console.log("orders:", data.orders);
+          const orders = data.orders;
+          setOrders(orders);
+          console.log("orders:", orders);
+          console.log("data.orders:", orders[0].restaurant.name);
         } else {
           console.error("Error fetching orders:", data.message);
         }
@@ -52,6 +55,40 @@ export default function CommandesScreen({ navigation }) {
       <View style={styles.currentOrders}>
         <Text>Commandes en cours...</Text>
         <View style={styles.currentOrdersList}></View>
+        {orders.map(
+          (order) =>
+            !order.orderStatus.isFinalized && (
+              <View key={order._id}>
+                <Text>{order.restaurant.name}</Text>
+                <Text>
+                  {order.estimatedArrivalTime
+                    ? new Date(order.estimatedArrivalTime).toLocaleTimeString()
+                    : "En attente"}
+                </Text>
+                <Text>{order.orderStatus.step}</Text>
+                <Text>{(order.totalPrice / 100).toFixed(2)} €</Text>
+                {/* autres infos */}
+              </View>
+            ),
+        )}
+        <View style={styles.pastOrders}>
+          <Text>Commandes précédentes</Text>
+          <View style={styles.pastOrdersList}></View>
+          {orders.map(
+            (order) =>
+              order.orderStatus.isFinalized && (
+                <View key={order._id}>
+                  <Text>{order.restaurant.name}</Text>
+                  <Text>
+                    {new Date(order.createdAt).toLocaleDateString()}{" "}
+                    {new Date(order.createdAt).toLocaleTimeString()}
+                  </Text>
+                  <Text>{(order.totalPrice / 100).toFixed(2)} €</Text>
+                  {/* autres infos */}
+                </View>
+              ),
+          )}
+        </View>
       </View>
     </SafeAreaView>
   );
