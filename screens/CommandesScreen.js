@@ -22,11 +22,11 @@ export default function CommandesScreen({ navigation }) {
   const [orders, setOrders] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
-
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
   useFocusEffect(
     React.useCallback(() => {
       console.log("token:", token);
-      fetch("http://192.168.100.94:3000/commandes", {
+      fetch(`${apiUrl}/commandes`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -43,8 +43,6 @@ export default function CommandesScreen({ navigation }) {
             }
 
             setOrders(orders);
-            console.log("orders:", orders);
-            console.log("data.orders:", orders[0].restaurant.name);
           } else {
             console.error("Error fetching orders:", data.message);
           }
@@ -52,7 +50,7 @@ export default function CommandesScreen({ navigation }) {
         .catch((error) => {
           console.error("Network error:", error);
         });
-      fetch("http://192.168.100.94:3000/restaurants")
+      fetch(`${apiUrl}/restaurants`)
         .then((res) => res.json())
         .then((data) => {
           console.log("Restaurants reçus:", data);
@@ -86,11 +84,12 @@ export default function CommandesScreen({ navigation }) {
         {/* Current Orders */}
         <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
           <Text style={styles.sectionTitle}>
-            Commandes en cours{' '}
+            Commandes en cours{" "}
             <Text
               style={
-                orders.filter((order) => !order.orderStatus.isFinalized).length === 0
-                  ? [styles.orangeDot, { color: '#222' }]
+                orders.filter((order) => !order.orderStatus.isFinalized)
+                  .length === 0
+                  ? [styles.orangeDot, { color: "#222" }]
                   : styles.orangeDot
               }
             >
