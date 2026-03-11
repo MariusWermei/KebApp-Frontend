@@ -1,3 +1,4 @@
+import React from "react";
 import {
   View,
   Button,
@@ -5,10 +6,13 @@ import {
   TouchableOpacity,
   Text,
   SafeAreaViewBase,
+  ScrollView,
+  Image,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 import { useEffect, useState } from "react";
@@ -16,80 +20,289 @@ import { useSelector } from "react-redux";
 export default function CommandesScreen({ navigation }) {
   const token = useSelector((state) => state.user.token);
   const [orders, setOrders] = useState([]);
-  useEffect(() => {
-    console.log("token:", token);
-    fetch("http://192.168.100.94:3000/commandes", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.result) {
-          const orders = data.orders;
-          setOrders(orders);
-          console.log("orders:", orders);
-          console.log("data.orders:", orders[0].restaurant.name);
-        } else {
-          console.error("Error fetching orders:", data.message);
-        }
+  const [restaurants, setRestaurants] = useState([]);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log("token:", token);
+      fetch("http://192.168.100.94:3000/commandes", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
-      .catch((error) => {
-        console.error("Network error:", error);
-      });
-  }, []);
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.result) {
+            const orders = data.orders;
+            setOrders(orders);
+            console.log("orders:", orders);
+            console.log("data.orders:", orders[0].restaurant.name);
+          } else {
+            console.error("Error fetching orders:", data.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Network error:", error);
+        });
+      fetch("http://192.168.100.94:3000/restaurants")
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("Restaurants reçus:", data);
+          console.log("Premier restaurant:", data.restaurants?.[0]);
+          if (data.result) setRestaurants(data.restaurants);
+        })
+        .catch((error) => console.error("Erreur fetch restaurants:", error));
+    }, []),
+  );
+  const getLogoUrl = (restaurantName) => {
+    const resto = restaurants.find((r) => r.name === restaurantName);
+    return resto?.photos?.[0];
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={20} color={colors.primary} />
-        </TouchableOpacity>
-        <View style={styles.title}>
-          <Text style={styles.titleText}>Vos commandes</Text>
+      <ScrollView>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={20} color={colors.primary} />
+          </TouchableOpacity>
+          <View style={styles.title}>
+            <Text style={styles.titleText}>Vos commandes</Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.currentOrders}>
-        <Text>Commandes en cours...</Text>
-        <View style={styles.currentOrdersList}></View>
-        {orders.map(
-          (order) =>
-            !order.orderStatus.isFinalized && (
-              <View key={order._id}>
-                <Text>{order.restaurant.name}</Text>
-                <Text>
-                  {order.estimatedArrivalTime
-                    ? new Date(order.estimatedArrivalTime).toLocaleTimeString()
-                    : "En attente"}
-                </Text>
-                <Text>{order.orderStatus.step}</Text>
-                <Text>{(order.totalPrice / 100).toFixed(2)} €</Text>
-                {/* autres infos */}
-              </View>
-            ),
-        )}
-        <View style={styles.pastOrders}>
-          <Text>Commandes précédentes</Text>
-          <View style={styles.pastOrdersList}></View>
-          {orders.map(
-            (order) =>
-              order.orderStatus.isFinalized && (
-                <View key={order._id}>
-                  <Text>{order.restaurant.name}</Text>
-                  <Text>
-                    {new Date(order.createdAt).toLocaleDateString()}{" "}
-                    {new Date(order.createdAt).toLocaleTimeString()}
-                  </Text>
-                  <Text>{(order.totalPrice / 100).toFixed(2)} €</Text>
-                  {/* autres infos */}
+
+        {/* Current Orders */}
+        <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
+          <Text style={styles.sectionTitle}>
+            Commandes en cours <Text style={styles.orangeDot}>•</Text>
+          </Text>
+          {orders.filter((order) => !order.orderStatus.isFinalized).length ===
+            0 && <Text style={styles.emptyText}>Aucune commande en cours</Text>}
+          {orders
+            .filter((order) => !order.orderStatus.isFinalized)
+            .map((order) => (
+              <View key={order._id} style={styles.card}>
+                <View style={styles.cardHeader}>
+                  {getLogoUrl(order.restaurant.name) ? (
+                    <Image
+                      source={{ uri: getLogoUrl(order.restaurant.name) }}
+                      style={styles.logoPlaceholder}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.logoPlaceholder} />
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.restaurantName}>
+                      {order.restaurant.name}
+                    </Text>
+                    <Text style={styles.orderNumber}>
+                      Commande #{order._id.slice(-4)}
+                    </Text>
+                  </View>
                 </View>
-              ),
-          )}
+
+                {/* Progress bar */}
+                <View style={styles.progressBarContainer}>
+                  <View
+                    style={[
+                      styles.progressBar,
+                      order.orderStatus.step === "ACCEPTED" && {
+                        width: "33%",
+                      },
+                      order.orderStatus.step === "PREPARING" && {
+                        width: "66%",
+                      },
+                      order.orderStatus.step === "READY" && { width: "100%" },
+                    ]}
+                  />
+                </View>
+                <View style={styles.progressLabels}>
+                  <Text
+                    style={[
+                      styles.progressLabel,
+                      order.orderStatus.step === "ACCEPTEE" &&
+                        styles.activeStep,
+                    ]}
+                  >
+                    ACCEPTÉE
+                  </Text>
+                  <Text
+                    style={[
+                      styles.progressLabel,
+                      order.orderStatus.step === "PREPARING" &&
+                        styles.activeStep,
+                    ]}
+                  >
+                    EN PRÉPARATION
+                  </Text>
+                  <Text
+                    style={[
+                      styles.progressLabel,
+                      order.orderStatus.step === "READY" && styles.activeStep,
+                    ]}
+                  >
+                    PRÊTE
+                  </Text>
+                </View>
+
+                <View style={styles.arrivalRow}>
+                  <Ionicons
+                    name="time-outline"
+                    size={16}
+                    color={colors.primary}
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text style={styles.arrivalText}>
+                    Arrivée prévue à{" "}
+                    {order.estimatedArrivalTime
+                      ? new Date(order.estimatedArrivalTime).toLocaleTimeString(
+                          [],
+                          { hour: "2-digit", minute: "2-digit" },
+                        )
+                      : "En attente"}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.moreButton}
+                  onPress={() => setSelectedOrderId(order._id)}
+                >
+                  <Text style={styles.moreButtonText}>En savoir plus</Text>
+                </TouchableOpacity>
+                {/* Modal pour les détails de la commande */}
+                <Modal
+                  visible={selectedOrderId === order._id}
+                  animationType="slide"
+                  transparent={true}
+                  onRequestClose={() => setSelectedOrderId(null)}
+                >
+                  <TouchableOpacity
+                    style={styles.modalContainer}
+                    activeOpacity={1}
+                    onPress={() => setSelectedOrderId(null)}
+                  >
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      onPress={(e) => e.stopPropagation()}
+                    >
+                      <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>
+                          Détails de la commande
+                        </Text>
+                        <Text style={styles.modalItems}>
+                          {order.items
+                            .map((item) => `${item.quantity}x ${item.name}`)
+                            .join("\n")}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => setSelectedOrderId(null)}
+                          style={styles.closeButton}
+                        >
+                          <Text style={styles.closeButtonText}>Fermer</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                </Modal>
+              </View>
+            ))}
         </View>
-      </View>
+
+        {/* Past Orders */}
+        <Text style={[styles.sectionTitle, { paddingLeft: 20 }]}>
+          Commandes précédentes
+        </Text>
+        <ScrollView
+          style={{ paddingHorizontal: 20, marginTop: 20, marginBottom: 20 }}
+        >
+          {orders.filter((order) => order.orderStatus.isFinalized).length ===
+            0 && (
+            <Text style={styles.emptyText}>Aucune commande précédente</Text>
+          )}
+          {orders
+            .filter((order) => order.orderStatus.isFinalized)
+            .map((order) => (
+              <View key={order._id} style={styles.card}>
+                <View style={styles.cardHeader}>
+                  {getLogoUrl(order.restaurant.name) ? (
+                    <Image
+                      source={{ uri: getLogoUrl(order.restaurant.name) }}
+                      style={styles.logoPlaceholder}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.logoPlaceholder} />
+                  )}
+
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.restaurantName}>
+                      {order.restaurant.name}
+                    </Text>
+                    <Text style={styles.orderDate}>
+                      {order.orderDate
+                        ? new Date(order.orderDate).toLocaleDateString(
+                            "fr-FR",
+                            {
+                              day: "2-digit",
+                              month: "long",
+                            },
+                          )
+                        : "Date inconnue"}{" "}
+                      • {(order.totalPrice / 100).toFixed(2)}€
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={styles.moreButton}
+                  onPress={() => setSelectedOrderId(order._id)}
+                >
+                  <Text style={styles.moreButtonText}>En savoir plus</Text>
+                </TouchableOpacity>
+                <Modal
+                  visible={selectedOrderId === order._id}
+                  animationType="slide"
+                  transparent={true}
+                  onRequestClose={() => setSelectedOrderId(null)}
+                >
+                  <TouchableOpacity
+                    style={styles.modalContainer}
+                    activeOpacity={1}
+                    onPress={() => setSelectedOrderId(null)}
+                  >
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      onPress={(e) => e.stopPropagation()}
+                    >
+                      <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>
+                          Détails de la commande
+                        </Text>
+                        <Text style={styles.modalItems}>
+                          {order.items
+                            .map((item) => `${item.quantity}x ${item.name}`)
+                            .join("\n")}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => setSelectedOrderId(null)}
+                          style={styles.closeButton}
+                        >
+                          <Text style={styles.closeButtonText}>Fermer</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                </Modal>
+              </View>
+            ))}
+        </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -97,7 +310,54 @@ export default function CommandesScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: "#F8F8F8",
+  },
+  modalContainer: {
+    width: "100%",
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
+  modalContent: {
+    width: "100%",
+    borderColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    borderWidth: 1,
+
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 30,
+    paddingHorizontal: 50,
+    alignItems: "center",
+  },
+  closeButton: {
+    marginTop: 20,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 50,
+  },
+  closeButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 15,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: colors.primary,
+    marginBottom: 16,
+  },
+  modalItems: {
+    fontSize: 15,
+    color: "#333",
+    lineHeight: 24,
+    marginBottom: 24,
+    textAlign: "center",
   },
   header: {
     flexDirection: "row",
@@ -105,10 +365,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: colors.lightGray,
+    borderBottomColor: "#3834343b",
+    backgroundColor: "#fff",
   },
   backButton: {
     marginRight: 20,
+  },
+  searchButton: {
+    marginLeft: 20,
   },
   title: {
     flex: 1,
@@ -118,6 +382,146 @@ const styles = StyleSheet.create({
     fontSize: fonts.size.large,
     fontWeight: "bold",
     color: colors.primary,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 12,
+    color: "#222",
+  },
+  orangeDot: {
+    color: "#FF6600",
+    fontSize: 18,
+  },
+  emptyText: {
+    color: colors.gray,
+    fontSize: 15,
+    marginBottom: 10,
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  logoPlaceholder: {
+    width: 45,
+    height: 45,
+    borderRadius: 8,
+    backgroundColor: "#E8D7C3",
+    marginRight: 12,
+  },
+  restaurantName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#222",
+  },
+  orderNumber: {
+    fontSize: 13,
+    color: "#888",
+    marginTop: 2,
+  },
+  progressBarContainer: {
+    height: 6,
+    backgroundColor: "#E8E8E8",
+    borderRadius: 3,
+    marginVertical: 10,
+    overflow: "hidden",
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: "#FF6600",
+    borderRadius: 3,
+  },
+  progressLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  progressLabel: {
+    fontSize: 11,
+    color: "#999",
+    fontWeight: "600",
+  },
+  activeStep: {
+    color: "#FF6600",
+    fontWeight: "bold",
+  },
+  arrivalRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  arrivalText: {
+    fontSize: 14,
+    color: "#666",
+    marginLeft: 4,
+  },
+  moreButton: {
+    backgroundColor: "#FFF3EB",
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: "center",
+    marginTop: 4,
+  },
+  moreButtonText: {
+    color: "#FF6600",
+    fontWeight: "bold",
+    fontSize: 15,
+  },
+  orderDate: {
+    fontSize: 13,
+    color: "#888",
+    marginTop: 2,
+  },
+  itemsText: {
+    fontSize: 14,
+    color: "#333",
+    marginBottom: 12,
+    marginTop: 2,
+  },
+  pastOrderButtonsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  reorderButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FF6600",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flex: 1,
+    justifyContent: "center",
+  },
+  reorderButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 15,
+  },
+  helpButton: {
+    backgroundColor: "#F2F2F2",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginLeft: 10,
+  },
+  helpButtonText: {
+    color: "#666",
+    fontWeight: "bold",
+    fontSize: 15,
   },
   currentOrders: {
     flex: 1,
