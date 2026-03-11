@@ -83,7 +83,7 @@ export default function PreferencesEditScreen() {
         >
           <Ionicons name="arrow-back" size={24} color={colors.textDark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Préférences alimentaires</Text>
+        <Text style={styles.headerTitle}>Gestion des préférences</Text>
         <View style={{ width: 24 }} />
       </View>
 

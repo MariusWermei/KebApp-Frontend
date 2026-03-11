@@ -18,14 +18,23 @@ import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 import { useSelector, useDispatch } from "react-redux";
 import { addCbCard, removeCbCard } from "../reducers/user";
+import { clearCart } from "../reducers/cart";
+import CustomAlert from "../components/CustomAlert";
 
 export default function PaymentMethodScreen() {
   const navigation = useNavigation();
   const timeoutRef = useRef(null);
   const dispatch = useDispatch();
+  const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+  // 📦 Infos utilisateur et panier
+  const userId = useSelector((state) => state.user.token); // On utilise token comme identifiant
+  const cartItems = useSelector((state) => state.cart.items);
+  const restaurantName = useSelector((state) => state.cart.restaurantName);
   const savedCards = useSelector((state) => state.user?.cbCard ?? []);
-  console.log("Saved cards from Redux =>", savedCards);
+
   // 💳 États cartes
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteCardId, setDeleteCardId] = useState(null);
@@ -153,6 +162,117 @@ export default function PaymentMethodScreen() {
     }
   };
 
+  // 💳 Valider le paiement et créer la commande
+  const handlePay = async () => {
+    console.log("🔵 handlePay called");
+    console.log("📦 cartItems:", cartItems);
+    console.log("🏪 restaurantName:", restaurantName);
+    console.log("👤 userId:", userId);
+    console.log("🌐 API_URL:", API_URL);
+
+    if (cartItems.length === 0) {
+      showCustomAlert(
+        "warning",
+        "Panier vide",
+        "Ajoute des articles à ton panier avant de payer.",
+      );
+      return;
+    }
+
+    if (!restaurantName) {
+      showCustomAlert(
+        "error",
+        "Erreur",
+        "Informations manquantes du restaurant.",
+      );
+      return;
+    }
+
+    setIsProcessingPayment(true);
+    try {
+      // Transformer les items du panier au format attendu par le backend
+      console.log(
+        "🔎 Structure cartItems:",
+        JSON.stringify(cartItems, null, 2),
+      );
+
+      const items = cartItems.map((cartItem) => {
+        console.log("🔍 cartItem.menuItem:", cartItem.menuItem);
+        return {
+          nom: cartItem.menuItem.name,
+          quantite: cartItem.quantity,
+          prix_unitaire: cartItem.menuItem.basePrice,
+        };
+      });
+
+      console.log("✅ Items transformés:", JSON.stringify(items, null, 2));
+
+      // Calculer le prix total
+      const prix_total = items.reduce(
+        (sum, item) => sum + item.quantite * item.prix_unitaire,
+        0,
+      );
+
+      // Préparer le payload (sans utilisateur_id dedans)
+      const payload = {
+        restaurant: {
+          nom: restaurantName,
+        },
+        items,
+        prix_total: Math.round(prix_total * 100) / 100,
+      };
+
+      console.log("📤 Envoi de la commande:", payload);
+      console.log("📍 URL API:", `${API_URL}/commandes`);
+      console.log("🔐 Token:", userId);
+
+      // Envoyer la commande au backend avec token en header
+      console.log("⏳ Envoi du fetch...");
+      const response = await fetch(`${API_URL}/commandes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      console.log("📨 Réponse reçue:", response.status, response.statusText);
+      const data = await response.json();
+      console.log("📦 Données reçues du backend:", data);
+
+      if (data.result) {
+        console.log("✅ Succès! data.result =", data.result);
+        showCustomAlert(
+          "success",
+          "Commande validée !",
+          "Ta commande a été créée avec succès.",
+        );
+        // Vider le panier et naviger
+        dispatch(clearCart());
+        setTimeout(() => {
+          navigation.navigate("Commandes");
+        }, 2000);
+      } else {
+        console.log("❌ Erreur! data.result =", data.result);
+        showCustomAlert(
+          "error",
+          "Erreur",
+          data.message || "Impossible de créer la commande.",
+        );
+      }
+    } catch (error) {
+      console.error("❌ Erreur paiement:", error);
+      showCustomAlert(
+        "error",
+        "Erreur réseau",
+        "Impossible de traiter le paiement.",
+      );
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       {/* Header */}
@@ -223,6 +343,24 @@ export default function PaymentMethodScreen() {
           />
           <Text style={styles.addBtnText}>Ajouter une carte</Text>
         </TouchableOpacity>
+
+        {/* 💳 Bouton de paiement */}
+        {cartItems.length > 0 && (
+          <TouchableOpacity
+            style={[styles.payBtn, isProcessingPayment && { opacity: 0.6 }]}
+            onPress={handlePay}
+            disabled={isProcessingPayment}
+          >
+            {isProcessingPayment ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <>
+                <Ionicons name="card" size={20} color="white" />
+                <Text style={styles.payBtnText}>Valider et payer</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* 🔽 MODALE: AJOUTER UNE CARTE */}
@@ -416,67 +554,13 @@ export default function PaymentMethodScreen() {
         </View>
       </Modal>
 
-      {/* 🎯 MODALE: ALERTES PERSONNALISÉES */}
-      <Modal
+      <CustomAlert
+        type={alertData.type}
+        title={alertData.title}
+        message={alertData.message}
         visible={showAlert}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setShowAlert(false)}
-      >
-        <TouchableOpacity
-          style={styles.alertOverlay}
-          onPress={() => {
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-            setShowAlert(false);
-          }}
-          activeOpacity={1}
-        >
-          <TouchableOpacity
-            style={[
-              styles.alertBox,
-              alertData.type === "success" && { borderLeftColor: "#4CAF50" },
-              alertData.type === "error" && { borderLeftColor: "#F44336" },
-              alertData.type === "warning" && { borderLeftColor: "#FF9800" },
-            ]}
-            onPress={() => {}}
-            activeOpacity={1}
-          >
-            {/* Icône */}
-            <View
-              style={[
-                styles.alertIcon,
-                alertData.type === "success" && {
-                  backgroundColor: "#4CAF50",
-                },
-                alertData.type === "error" && {
-                  backgroundColor: "#F44336",
-                },
-                alertData.type === "warning" && {
-                  backgroundColor: "#FF9800",
-                },
-              ]}
-            >
-              <Ionicons
-                name={
-                  alertData.type === "success"
-                    ? "checkmark-circle"
-                    : alertData.type === "error"
-                      ? "close-circle"
-                      : "alert-circle"
-                }
-                size={24}
-                color="white"
-              />
-            </View>
-
-            {/* Contenu */}
-            <View style={styles.alertContent}>
-              <Text style={styles.alertTitle}>{alertData.title}</Text>
-              <Text style={styles.alertMessage}>{alertData.message}</Text>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => setShowAlert(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -549,6 +633,23 @@ const styles = StyleSheet.create({
     fontFamily: fonts.family.semibold,
     fontSize: fonts.size.body,
     color: colors.primary,
+  },
+  // 💳 Bouton de paiement
+  payBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 24,
+  },
+  payBtnText: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.body,
+    color: "white",
   },
   // 📭 État vide
   emptyState: {
