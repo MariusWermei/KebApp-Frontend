@@ -5,11 +5,13 @@ const cartSlice = createSlice({
   initialState: {
     items: [], // { menuItem, quantity, selectedOptions }
     restaurantName: null,
+    restaurantId: null, // Ajouter l'ID du restaurant
   },
   reducers: {
     addToCart: (state, action) => {
-      const { menuItem, selectedOptions } = action.payload;
-      state.restaurantName = action.payload.restaurantName;
+      const { menuItem, selectedOptions, restaurantName, restaurantId } = action.payload;
+      state.restaurantName = restaurantName;
+      state.restaurantId = restaurantId; // Stocker l'ID du restaurant
 
       // Vérifie si le même plat avec les mêmes options existe déjà
       const existing = state.items.find(
@@ -40,10 +42,12 @@ const cartSlice = createSlice({
     clearCart: (state) => {
       state.items = [];
       state.restaurantName = null;
+      state.restaurantId = null; // Aussi réinitialiser l'ID
     },
     removeAllCart: (state) => {
       state.items = [];
       state.restaurantName = null;
+      state.restaurantId = null; // Aussi réinitialiser l'ID
     },
   },
 });
