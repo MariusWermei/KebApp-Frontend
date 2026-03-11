@@ -25,9 +25,7 @@ export default function PaymentScreen() {
     (sum, i) => sum + i.quantity * i.menuItem.basePrice,
     0,
   );
-  const handleAlert = () => <CustomAlert message="uioub " />;
 
-  console.log("Price from Redux =>", totalPrice);
   const dispatch = useDispatch();
   return (
     <View style={styles.container}>
