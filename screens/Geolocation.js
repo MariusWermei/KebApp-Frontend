@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet, Image } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Button from "../components/Button";
@@ -68,7 +69,7 @@ export default function Geolocation({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Image
         source={require("../assets/geolocation.png")}
         style={styles.image}
@@ -86,7 +87,7 @@ export default function Geolocation({ navigation }) {
       <Pressable onPress={handleSkip}>
         <Text style={styles.skip}>Passer</Text>
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 }
 

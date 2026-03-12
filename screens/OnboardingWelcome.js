@@ -1,12 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 
 export default function OnboardingWelcome({ navigation }) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Image */}
       <Image
         source={require("../assets/logo.png")}
@@ -25,7 +26,7 @@ export default function OnboardingWelcome({ navigation }) {
         title="Next →"
         onPress={() => navigation.navigate("SignUp", { fromOnboarding: true })}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
