@@ -3,9 +3,7 @@
     "name": "Keb'ap",
     "slug": "kebap",
     "version": "1.0.0",
-
     "scheme": "kebapp",
-
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
@@ -23,11 +21,24 @@
         "foregroundImage": "",
         "backgroundImage": "",
         "monochromeImage": ""
-      }
+      },
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.INTERNET"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-font"]
+    "plugins": [
+      "expo-font",
+      [
+        "react-native-maps",
+        {
+          "mapsApiKey": "AIzaSyAc7VqJtp0OPgDr4Cf85Ar6bLdwr-macLk"
+        }
+      ]
+    ]
   }
 }

@@ -16,6 +16,8 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Linking from "expo-linking";
 import colors from "./constants/colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Platform, StatusBar } from "react-native";
 
 // Redux + Persist
 import { Provider, useSelector } from "react-redux";
@@ -259,15 +261,20 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
-      <Provider store={store}>
-        <PersistGate persistor={persistor}>
-          <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+      <SafeAreaProvider>
+        <Provider store={store}>
+          <PersistGate persistor={persistor}>
+            <StatusBar
+              barStyle="dark-content"
+              backgroundColor="transparent"
+              translucent={true}
+            />
             <NavigationContainer linking={linking} ref={navigationRef}>
               <AppNavigator />
             </NavigationContainer>
-          </View>
-        </PersistGate>
-      </Provider>
+          </PersistGate>
+        </Provider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

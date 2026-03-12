@@ -274,7 +274,7 @@ export default function PaymentScreen() {
         </ScrollView>
       </View>
       <Button
-        backgroundColor="transparent"
+        backgroundColor="white"
         borderWidth={2}
         borderColor={colors.primary}
         color={colors.primary}

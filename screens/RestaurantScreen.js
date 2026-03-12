@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   Image,
-  SafeAreaView,
   Linking,
   Share,
   useWindowDimensions,
@@ -22,6 +21,7 @@ import {
   removeFromCart,
   decreaseQuantity,
 } from "../reducers/cart";
+import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 import Button from "../components/Button";

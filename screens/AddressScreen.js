@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  SafeAreaView,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
@@ -19,6 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AddressScreen() {
   const navigation = useNavigation();
@@ -130,6 +130,11 @@ export default function AddressScreen() {
       const { latitude, longitude } = coords;
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1&zoom=28`,
+        {
+          headers: {
+            "User-Agent": "KebApp/1.0 (react-native)",
+          },
+        },
       );
       const data = await response.json();
 
