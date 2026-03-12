@@ -22,7 +22,15 @@ export default function CommandesScreen({ navigation }) {
   const [orders, setOrders] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [refresh, setRefresh] = useState(0);
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRefresh((prev) => prev + 1); // toutes les 20s → incrémente refresh
+    }, 20000);
+    return () => clearInterval(interval); // stoppe le timer quand on quitte la page
+  }, []);
   useFocusEffect(
     React.useCallback(() => {
       console.log("token:", token);
@@ -38,7 +46,6 @@ export default function CommandesScreen({ navigation }) {
             const orders = data.orders;
 
             if (orders.length === 0) {
-              console.log("Aucune commande trouvée pour cet utilisateur.");
               return;
             }
 
@@ -53,18 +60,35 @@ export default function CommandesScreen({ navigation }) {
       fetch(`${apiUrl}/restaurants`)
         .then((res) => res.json())
         .then((data) => {
-          console.log("Restaurants reçus:", data);
-          console.log("Premier restaurant:", data.restaurants?.[0]);
           if (data.result) setRestaurants(data.restaurants);
         })
         .catch((error) => console.error("Erreur fetch restaurants:", error));
-    }, []),
+    }, [refresh]),
   );
   const getLogoUrl = (restaurantName) => {
     const resto = restaurants.find((r) => r.name === restaurantName);
     return resto?.photos?.[0];
   };
+  const handleDevOrderUpdate = async (orderId, status) => {
+    const response = await fetch(`${apiUrl}/commandes/${orderId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // ton token JWT
+      },
+      body: JSON.stringify({
+        status: "DELIVERED", // ou "PENDING", "IN_PROGRESS", etc.
+      }),
+    });
 
+    const data = await response.json();
+
+    if (data.result) {
+      console.log("Commande mise à jour :", data.order);
+    } else {
+      console.log("Erreur :", data.message);
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -125,7 +149,33 @@ export default function CommandesScreen({ navigation }) {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.restaurantName}>
                       {order.restaurant.name}
+                      {/* Button de dev (DELIVERED) /* À supprimer en prod */}
+                      <TouchableOpacity
+                        onPress={() => {
+                          handleDevOrderUpdate(order._id, "DELIVERED");
+                          setRefresh((prev) => prev + 1);
+                        }}
+                        style={{
+                          backgroundColor: "#FF6600",
+                          paddingHorizontal: 2,
+                          paddingVertical: 2,
+                          borderRadius: 4,
+                          marginLeft: 10,
+                          gap: 4,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#fff",
+                            fontSize: 7,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          DELIVERED
+                        </Text>
+                      </TouchableOpacity>
                     </Text>
+
                     <Text style={styles.orderNumber}>
                       N° de commande :{" "}
                       {order?.orderNumber?.slice(0, 3) +

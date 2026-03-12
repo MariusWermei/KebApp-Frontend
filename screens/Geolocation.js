@@ -22,7 +22,7 @@ export default function Geolocation({ navigation }) {
     if (status === "granted") {
       // 1. Récupérer la position MAINTENANT (attend le résultat)
       const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
+        accuracy: Location.Accuracy.High,
       });
       await AsyncStorage.setItem(
         "userLocation",
@@ -32,14 +32,19 @@ export default function Geolocation({ navigation }) {
       // 2. Mettre en place le watcher pour les mises à jour futures
       locationSubscriptionRef.current = await Location.watchPositionAsync(
         {
-          accuracy: Location.Accuracy.Balanced,
+          accuracy: Location.Accuracy.High,
           distanceInterval: 10,
+          timeInterval: 50000,
         },
         async (location) => {
-          await AsyncStorage.setItem(
-            "userLocation",
-            JSON.stringify(location.coords),
-          );
+          try {
+            await AsyncStorage.setItem(
+              "userLocation",
+              JSON.stringify(location.coords),
+            );
+          } catch (error) {
+            console.error("Erreur AsyncStorage:", error);
+          }
         },
       );
     } else {

@@ -19,7 +19,7 @@ export default function PaymentScreen() {
   const cbCard = useSelector((state) => state.user.cbCard);
   const cartItems = useSelector((state) => state.cart.items);
   const restaurantName = useSelector((state) => state.cart.restaurantName);
-  const userId = useSelector((state) => state.user.token);
+  const token = useSelector((state) => state.user.token);
 
   // 💳 États pour la sélection et le paiement
   const [selectedCardId, setSelectedCardId] = useState(null);
@@ -67,7 +67,7 @@ export default function PaymentScreen() {
     console.log("🔵 handlePay called");
     console.log("📦 cartItems:", cartItems);
     console.log("🏪 restaurantName:", restaurantName);
-    console.log("👤 userId:", userId);
+    console.log("🔐 Token:", token);
     console.log("🌐 API_URL:", API_URL);
 
     if (cartItems.length === 0) {
@@ -110,14 +110,14 @@ export default function PaymentScreen() {
 
       console.log("📤 Envoi de la commande:", payload);
       console.log("📍 URL API:", `${API_URL}/commandes`);
-      console.log("🔐 Token:", userId);
+      console.log("🔐 Token:", token);
 
       // Envoyer la commande au backend avec token en header
       const response = await fetch(`${API_URL}/commandes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${userId}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -131,7 +131,7 @@ export default function PaymentScreen() {
         const orderNumber = data.order?.orderNumber || "N/A";
         showCustomAlert(
           "success",
-          "Commande validée !",
+          "Commande validée ! Tu as gagne 100 points de fidélité 🎉",
           `Numéro: ${orderNumber}\nTa commande a été créée avec succès.`,
         );
         // Vider le panier et naviger
@@ -156,6 +156,27 @@ export default function PaymentScreen() {
       );
     } finally {
       setIsProcessingPayment(false);
+    }
+  };
+  const handleAddPoints = async (points) => {
+    try {
+      const response = await fetch(`${API_URL}/users/points`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ points }),
+      });
+
+      const data = await response.json();
+      if (data.result) {
+        console.log("✅ Points mis à jour:", data);
+      } else {
+        console.log("❌ Erreur mise à jour points:", data.message);
+      }
+    } catch (error) {
+      console.error("❌ Erreur réseau mise à jour points:", error);
     }
   };
 
@@ -266,7 +287,10 @@ export default function PaymentScreen() {
           disabled={!selectedCardId || isProcessingPayment}
           fontSize={18}
           title="payer"
-          onPress={handlePay}
+          onPress={() => {
+            handlePay();
+            handleAddPoints(100); // +100 points fidélité
+          }}
         />
       </View>
       <CustomAlert
