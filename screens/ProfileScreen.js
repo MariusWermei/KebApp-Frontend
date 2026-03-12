@@ -3,7 +3,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Platform,
   Image,
@@ -22,6 +21,7 @@ import fonts from "../constants/fonts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { removeAllUsers } from "../reducers/user";
 import { removeAllCart } from "../reducers/cart";
+import { SafeAreaView } from "react-native-safe-area-context";
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 // ==================== COMPONENTS ====================
