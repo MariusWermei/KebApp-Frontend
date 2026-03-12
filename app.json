@@ -25,8 +25,12 @@
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.INTERNET"
-      ]
+      ],
+      "package": "com.bannersoso.kebap"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -36,7 +40,7 @@
       [
         "react-native-maps",
         {
-          "mapsApiKey": "AIzaSyAc7VqJtp0OPgDr4Cf85Ar6bLdwr-macLk"
+          "mapsApiKey": "AIzaSyCq09h7ZXtkLeaswq1ewauwA8joOovSAHE"
         }
       ]
     ]
