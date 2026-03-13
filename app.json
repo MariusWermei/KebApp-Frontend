@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Keb'ap",
+    "name": "Keb'App",
     "slug": "kebap",
     "version": "1.0.0",
     "scheme": "kebapp",
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
+    "icon": "./assets/geolocation.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "",
