@@ -3,7 +3,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Platform,
   Image,
@@ -22,6 +21,7 @@ import fonts from "../constants/fonts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { removeAllUsers } from "../reducers/user";
 import { removeAllCart } from "../reducers/cart";
+import { SafeAreaView } from "react-native-safe-area-context";
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 // ==================== COMPONENTS ====================
@@ -130,7 +130,7 @@ export default function ProfileScreen() {
   // ========== VUE DÉCONNECTÉE ==========
   if (!token) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <Ionicons
           name="person-circle-outline"
           size={80}
@@ -177,7 +177,7 @@ export default function ProfileScreen() {
             RESET (dev)
           </Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   connectedContainer: { flex: 1, backgroundColor: "#F6F7FB" },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingTop: 24,
     paddingBottom: 40,
   },
 

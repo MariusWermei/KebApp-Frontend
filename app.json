@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "scheme": "kebapp",
     "orientation": "portrait",
-    "icon": "./assets/geolocation.png",
+    "icon": "./assets/logoV2.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "",
@@ -25,8 +25,12 @@
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.INTERNET"
-      ]
+      ],
+      "package": "com.nathan.d1.kebap"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -36,9 +40,14 @@
       [
         "react-native-maps",
         {
-          "mapsApiKey": "AIzaSyAc7VqJtp0OPgDr4Cf85Ar6bLdwr-macLk"
+          "mapsApiKey": "AIzaSyCq09h7ZXtkLeaswq1ewauwA8joOovSAHE"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ee6a0b23-0df8-4d26-9c7e-2d886ea962b4"
+      }
+    }
   }
 }

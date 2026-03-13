@@ -1,11 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  FlatList,
-  Text,
-} from "react-native";
+import { StyleSheet, View, TouchableOpacity, FlatList } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -115,11 +109,17 @@ export default function MapScreen() {
   return (
     <View style={styles.container}>
       <MapView
+        // provider="google"
         ref={mapRef}
         style={styles.map}
+        // provider="google"
         initialRegion={region}
         showsUserLocation={true}
         showsMyLocationButton={false}
+        loadingEnabled={true}
+        loadingIndicatorColor={colors.primary}
+        zoomEnabled={true}
+        scrollEnabled={true}
         onRegionChangeComplete={(r) => {
           setCurrentRegion(r);
           filterVisibleRestaurants(r);
