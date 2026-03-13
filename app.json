@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "scheme": "kebapp",
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
+    "icon": "./assets/logoV2.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "",
@@ -30,7 +30,7 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.INTERNET"
       ],
-      "package": "com.bannersoso.kebap"
+      "package": "com.nathan.d1.kebap"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -43,6 +43,11 @@
           "mapsApiKey": "AIzaSyCq09h7ZXtkLeaswq1ewauwA8joOovSAHE"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ee6a0b23-0df8-4d26-9c7e-2d886ea962b4"
+      }
+    }
   }
 }

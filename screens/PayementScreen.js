@@ -1,4 +1,5 @@
 import { Text, View, TouchableOpacity, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import { useDispatch, useSelector } from "react-redux";
 import { useState, useRef, useEffect } from "react";
@@ -305,13 +306,22 @@ export default function PaymentScreen() {
           onClose={() => setAlertVisible(false)}
         />
       </View>
+<<<<<<< HEAD
+=======
+      <CustomAlert
+        visible={alertVisible}
+        type={alertData.type}
+        title={alertData.title}
+        message={alertData.message}
+        onClose={() => setAlertVisible(false)}
+      />
+>>>>>>> 71fc2cb53bd737ff9bcc71e333a21654cb609c9c
     </SafeAreaView>
   );
 }
 
 const styles = {
   container: {
-    paddingTop: 50,
     flex: 1,
     paddingHorizontal: 20,
     marginBottom: 20,

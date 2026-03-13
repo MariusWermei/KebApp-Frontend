@@ -1,12 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 
 export default function OnboardingReady({ navigation }) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Image
         source={require("../assets/onboarding-ready.png")}
         style={styles.image}
@@ -22,7 +23,7 @@ export default function OnboardingReady({ navigation }) {
         title="Commencez"
         onPress={() => navigation.navigate("Geolocation")}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

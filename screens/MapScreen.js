@@ -112,9 +112,14 @@ export default function MapScreen() {
         // provider="google"
         ref={mapRef}
         style={styles.map}
+        // provider="google"
         initialRegion={region}
         showsUserLocation={true}
         showsMyLocationButton={false}
+        loadingEnabled={true}
+        loadingIndicatorColor={colors.primary}
+        zoomEnabled={true}
+        scrollEnabled={true}
         onRegionChangeComplete={(r) => {
           setCurrentRegion(r);
           filterVisibleRestaurants(r);

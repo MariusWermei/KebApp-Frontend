@@ -7,6 +7,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
@@ -77,7 +78,7 @@ export default function OnboardingPreferences({ navigation }) {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <TouchableOpacity
           style={styles.skipButton}
           onPress={() => {
@@ -118,7 +119,7 @@ export default function OnboardingPreferences({ navigation }) {
         </View>
 
         <Button title="Next →" onPress={handleNext} />
-      </View>
+      </SafeAreaView>
     </TouchableWithoutFeedback>
   );
 }
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
   },
   skipButton: {
     position: "absolute",
-    top: 60,
+    top: 10,
     right: 25,
   },
   skipText: {
