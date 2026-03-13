@@ -40,11 +40,6 @@
           "mapsApiKey": "AIzaSyCq09h7ZXtkLeaswq1ewauwA8joOovSAHE"
         }
       ]
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "ee6a0b23-0df8-4d26-9c7e-2d886ea962b4"
-      }
-    }
+    ]
   }
 }
