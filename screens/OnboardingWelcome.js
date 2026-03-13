@@ -10,7 +10,7 @@ export default function OnboardingWelcome({ navigation }) {
     <SafeAreaView style={styles.container}>
       {/* Image */}
       <Image
-        source={require("../assets/logoV2.png")}
+        source={require("../assets/logo.png")}
         style={styles.image}
         resizeMode="cover"
       />
