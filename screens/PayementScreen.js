@@ -9,7 +9,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { clearCart } from "../reducers/cart";
 import CustomAlert from "../components/CustomAlert";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PaymentScreen() {
   const navigation = useNavigation();
@@ -306,8 +305,6 @@ export default function PaymentScreen() {
           onClose={() => setAlertVisible(false)}
         />
       </View>
-<<<<<<< HEAD
-=======
       <CustomAlert
         visible={alertVisible}
         type={alertData.type}
@@ -315,7 +312,6 @@ export default function PaymentScreen() {
         message={alertData.message}
         onClose={() => setAlertVisible(false)}
       />
->>>>>>> 71fc2cb53bd737ff9bcc71e333a21654cb609c9c
     </SafeAreaView>
   );
 }
