@@ -9,6 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { clearCart } from "../reducers/cart";
 import CustomAlert from "../components/CustomAlert";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PaymentScreen() {
   const navigation = useNavigation();
@@ -182,118 +183,131 @@ export default function PaymentScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={20} color={colors.primary} />
-          <Text style={styles.backText}>Retour à la commande</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Paiement</Text>
-      </View>
-      <View style={styles.totalPrice}>
-        <Text style={styles.totalText}>Montant à payer</Text>
-        <Text style={styles.totalValue}>{(totalPrice / 100).toFixed(2)}€</Text>
-      </View>
-      <View style={styles.paymentMethods}>
-        <Button
-          height={50}
-          fontSize={20}
-          backgroundColor="#191212ff"
-          color={colors.textWhite}
-          title="Apple Pay"
-          onPress={() => {
-            setAlertData({
-              type: "warning",
-              title: "Non disponible",
-              message: "Apple Pay n'est pas encore implémenté.",
-            });
-            setAlertVisible(true);
-          }}
-        />
-        <CustomAlert
-          visible={alertVisible}
-          type={alertData.type}
-          title={alertData.title}
-          message={alertData.message}
-          onClose={() => setAlertVisible(false)}
-        />
-        <Button
-          height={50}
-          fontSize={20}
-          backgroundColor="#4285F4"
-          color={colors.textWhite}
-          title="Google Pay"
-          onPress={() => {
-            setAlertData({
-              type: "warning",
-              title: "Non disponible",
-              message: "Google Pay n'est pas encore implémenté.",
-            });
-            setAlertVisible(true);
-          }}
-        />
-        <CustomAlert
-          visible={alertVisible}
-          type={alertData.type}
-          title={alertData.title}
-          message={alertData.message}
-          onClose={() => setAlertVisible(false)}
-        />
-      </View>
-      <View style={styles.cardInfo}>
-        <Text style={styles.cardText}>
-          Sélectionnez une carte enregistrée :
-        </Text>
-        <ScrollView style={styles.cardActions}>
-          {Array.isArray(cbCard) && cbCard.length > 0 ? (
-            cbCard.map((card, index) => (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.backgroundLight }}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={20} color={colors.primary} />
+            <Text style={styles.backText}>Retour à la commande</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>Paiement</Text>
+        </View>
+        <View style={styles.totalPrice}>
+          <Text style={styles.totalText}>Montant à payer</Text>
+          <Text style={styles.totalValue}>
+            {(totalPrice / 100).toFixed(2)}€
+          </Text>
+        </View>
+        <View style={styles.paymentMethods}>
+          <Button
+            height={50}
+            fontSize={20}
+            backgroundColor="#191212ff"
+            color={colors.textWhite}
+            title="Apple Pay"
+            onPress={() => {
+              setAlertData({
+                type: "warning",
+                title: "Non disponible",
+                message: "Apple Pay n'est pas encore implémenté.",
+              });
+              setAlertVisible(true);
+            }}
+          />
+          <CustomAlert
+            visible={alertVisible}
+            type={alertData.type}
+            title={alertData.title}
+            message={alertData.message}
+            onClose={() => setAlertVisible(false)}
+          />
+          <Button
+            height={50}
+            fontSize={20}
+            backgroundColor="#4285F4"
+            color={colors.textWhite}
+            title="Google Pay"
+            onPress={() => {
+              setAlertData({
+                type: "warning",
+                title: "Non disponible",
+                message: "Google Pay n'est pas encore implémenté.",
+              });
+              setAlertVisible(true);
+            }}
+          />
+          <CustomAlert
+            visible={alertVisible}
+            type={alertData.type}
+            title={alertData.title}
+            message={alertData.message}
+            onClose={() => setAlertVisible(false)}
+          />
+        </View>
+        <View style={styles.cardInfo}>
+          <Text style={styles.cardText}>
+            Sélectionnez une carte enregistrée :
+          </Text>
+          <ScrollView style={styles.cardActions}>
+            {Array.isArray(cbCard) && cbCard.length > 0 ? (
+              cbCard.map((card, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.cardItem,
+                    selectedCardId === card.id && styles.cardItemSelected,
+                  ]}
+                  onPress={() => setSelectedCardId(card.id)}
+                >
+                  <Text style={styles.cardType}>{card.cardType}</Text>
+                  <Text style={styles.cardText}>{card.cardholderName}</Text>
+                  <Text
+                    style={styles.cardText}
+                  >{`**** **** **** ${card?.last4 ?? "----"}`}</Text>
+                </TouchableOpacity>
+              ))
+            ) : (
               <TouchableOpacity
-                key={index}
-                style={[
-                  styles.cardItem,
-                  selectedCardId === card.id && styles.cardItemSelected,
-                ]}
-                onPress={() => setSelectedCardId(card.id)}
+                onPress={() => navigation.navigate("PaymentMethod")}
               >
-                <Text style={styles.cardType}>{card.cardType}</Text>
-                <Text style={styles.cardText}>{card.cardholderName}</Text>
-                <Text
-                  style={styles.cardText}
-                >{`**** **** **** ${card?.last4 ?? "----"}`}</Text>
+                <Text style={styles.cardText}>Aucune carte enregistrée</Text>
               </TouchableOpacity>
-            ))
-          ) : (
-            <TouchableOpacity
-              onPress={() => navigation.navigate("PaymentMethod")}
-            >
-              <Text style={styles.cardText}>Aucune carte enregistrée</Text>
-            </TouchableOpacity>
-          )}
-        </ScrollView>
-      </View>
-      <Button
-        backgroundColor="white"
-        borderWidth={2}
-        borderColor={colors.primary}
-        color={colors.primary}
-        fontSize={16}
-        title="Ajouter une carte"
-        onPress={() => navigation.navigate("PaymentMethod")}
-      />
-      <View style={styles.footer}>
+            )}
+          </ScrollView>
+        </View>
         <Button
-          disabled={!selectedCardId || isProcessingPayment}
-          fontSize={18}
-          title="payer"
-          onPress={() => {
-            handlePay();
-            handleAddPoints(100); // +100 points fidélité
-          }}
+          backgroundColor="white"
+          borderWidth={2}
+          borderColor={colors.primary}
+          color={colors.primary}
+          fontSize={16}
+          title="Ajouter une carte"
+          onPress={() => navigation.navigate("PaymentMethod")}
+        />
+        <View style={styles.footer}>
+          <Button
+            disabled={!selectedCardId || isProcessingPayment}
+            fontSize={18}
+            title="payer"
+            onPress={() => {
+              handlePay();
+              handleAddPoints(100); // +100 points fidélité
+            }}
+          />
+        </View>
+        <CustomAlert
+          visible={alertVisible}
+          type={alertData.type}
+          title={alertData.title}
+          message={alertData.message}
+          onClose={() => setAlertVisible(false)}
         />
       </View>
+<<<<<<< HEAD
+=======
       <CustomAlert
         visible={alertVisible}
         type={alertData.type}
@@ -301,6 +315,7 @@ export default function PaymentScreen() {
         message={alertData.message}
         onClose={() => setAlertVisible(false)}
       />
+>>>>>>> 71fc2cb53bd737ff9bcc71e333a21654cb609c9c
     </SafeAreaView>
   );
 }
