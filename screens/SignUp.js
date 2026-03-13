@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Alert,
   Platform,
   KeyboardAvoidingView,
@@ -16,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Button from "../components/Button";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useDispatch } from "react-redux";
 import { setToken } from "../reducers/user";
@@ -196,7 +196,9 @@ export default function SignInScreen() {
               >
                 <View style={styles.secondaryInner}>
                   <View style={styles.googleDot} />
-                  <Text style={styles.secondaryText}>Continuer avec Google</Text>
+                  <Text style={styles.secondaryText}>
+                    Continuer avec Google
+                  </Text>
                 </View>
               </TouchableOpacity>
 

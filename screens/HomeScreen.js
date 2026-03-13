@@ -15,7 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { ActivityIndicator } from "react-native";
 import SearchBar from "../components/SearchBar";
 import FilterTags from "../components/FilterTags";
 import RestaurantCard from "../components/RestaurantCard";
@@ -32,74 +32,81 @@ export default function HomeScreen() {
   const [restaurants, setRestaurants] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [coords, setCoords] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       // 1. Récupérer la position
-      const locationStr = await AsyncStorage.getItem("userLocation");
-      const userCoords = locationStr ? JSON.parse(locationStr) : null;
-      setCoords(userCoords);
+      try {
+        const locationStr = await AsyncStorage.getItem("userLocation");
+        const userCoords = locationStr ? JSON.parse(locationStr) : null;
+        setCoords(userCoords);
 
-      const SORT_TAGS = ["📍 près de vous", "⭐ mieux notés"];
-      const backendTags = selectedTags.filter((t) => !SORT_TAGS.includes(t));
-      const isSortByDistance = selectedTags.includes("📍 près de vous");
-      const isSortByRating = selectedTags.includes("⭐ mieux notés");
+        const SORT_TAGS = ["📍 près de vous", "⭐ mieux notés"];
+        const backendTags = selectedTags.filter((t) => !SORT_TAGS.includes(t));
+        const isSortByDistance = selectedTags.includes("📍 près de vous");
+        const isSortByRating = selectedTags.includes("⭐ mieux notés");
 
-      let restaurantsUrl = `${API_URL}/restaurants`;
+        let restaurantsUrl = `${API_URL}/restaurants`;
 
-      if (search.trim()) {
-        restaurantsUrl += `?search=${search.trim()}`;
-      } else if (isSortByDistance || isSortByRating) {
-        // Tri spécial → 40 résultats max
-        restaurantsUrl += `?limit=40`;
-      } else if (backendTags.length === 0) {
-        // Aucun tag → affichage par défaut, 10 résultats
-        restaurantsUrl += `?limit=10`;
-      }
-      // Si backendTags sélectionnés (poulet, agneau...) → pas de limit = tous les résultats
+        if (search.trim()) {
+          restaurantsUrl += `?search=${search.trim()}`;
+        } else if (isSortByDistance || isSortByRating) {
+          // Tri spécial → 40 résultats max
+          restaurantsUrl += `?limit=40`;
+        } else if (backendTags.length === 0) {
+          // Aucun tag → affichage par défaut, 10 résultats
+          restaurantsUrl += `?limit=10`;
+        }
+        // Si backendTags sélectionnés (poulet, agneau...) → pas de limit = tous les résultats
 
-      if (backendTags.length > 0) {
-        const separator = restaurantsUrl.includes("?") ? "&" : "?";
-        restaurantsUrl += `${separator}tags=${backendTags.join(",")}`;
-      }
-
-      // On envoie TOUJOURS les coordonnées (pour avoir le champ distance sur les cards)
-      if (userCoords) {
-        const separator = restaurantsUrl.includes("?") ? "&" : "?";
-        restaurantsUrl += `${separator}latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
-      }
-
-      const restoResponse = await fetch(restaurantsUrl);
-      const restoData = await restoResponse.json();
-
-      if (restoData.result) {
-        let sorted = restoData.restaurants;
-
-        if (isSortByRating && !isSortByDistance) {
-          sorted = [...sorted].sort((a, b) => b.rating - a.rating);
+        if (backendTags.length > 0) {
+          const separator = restaurantsUrl.includes("?") ? "&" : "?";
+          restaurantsUrl += `${separator}tags=${backendTags.join(",")}`;
         }
 
-        setRestaurants(sorted);
-      }
-
-      // 3. Fetch recommandations (seulement si PAS de tags sélectionnés + connecté + préférences)
-      if (
-        selectedTags.length === 0 &&
-        !search.trim() &&
-        token &&
-        preferences.length > 0
-      ) {
-        let recoUrl = `${API_URL}/restaurants/recommendations?tags=${preferences.join(",")}&limit=10`;
+        // On envoie TOUJOURS les coordonnées (pour avoir le champ distance sur les cards)
         if (userCoords) {
-          recoUrl += `&latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
+          const separator = restaurantsUrl.includes("?") ? "&" : "?";
+          restaurantsUrl += `${separator}latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
         }
 
-        const recoResponse = await fetch(recoUrl);
-        const recoData = await recoResponse.json();
+        const restoResponse = await fetch(restaurantsUrl);
+        const restoData = await restoResponse.json();
 
-        if (recoData.result) {
-          setRecommendations(recoData.restaurants);
+        if (restoData.result) {
+          let sorted = restoData.restaurants;
+
+          if (isSortByRating && !isSortByDistance) {
+            sorted = [...sorted].sort((a, b) => b.rating - a.rating);
+          }
+
+          setRestaurants(sorted);
         }
+
+        // 3. Fetch recommandations (seulement si PAS de tags sélectionnés + connecté + préférences)
+        if (
+          selectedTags.length === 0 &&
+          !search.trim() &&
+          token &&
+          preferences.length > 0
+        ) {
+          let recoUrl = `${API_URL}/restaurants/recommendations?tags=${preferences.join(",")}&limit=10`;
+          if (userCoords) {
+            recoUrl += `&latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
+          }
+
+          const recoResponse = await fetch(recoUrl);
+          const recoData = await recoResponse.json();
+
+          if (recoData.result) {
+            setRecommendations(recoData.restaurants);
+          }
+        }
+      } catch (error) {
+        console.error("Erreur fetchData:", error);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -122,6 +129,18 @@ export default function HomeScreen() {
     );
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.safe,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+      </SafeAreaView>
+    );
+  }
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView
