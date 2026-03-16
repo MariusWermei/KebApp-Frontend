@@ -40,6 +40,12 @@
           "mapsApiKey": "AIzaSyCq09h7ZXtkLeaswq1ewauwA8joOovSAHE"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8caa4eb2-a00a-4c82-8743-417cd9dc0d1b"
+      }
+    },
+    "owner": "bannersoso"
   }
 }

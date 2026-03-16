@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
+import * as Location from "expo-location";
 
 import { useNavigation } from "@react-navigation/native";
 import RestaurantCard from "../components/RestaurantCard";
@@ -29,40 +30,38 @@ export default function MapScreen() {
 
   useEffect(() => {
     async function loadData() {
-      const locationStr = await AsyncStorage.getItem("userLocation");
-      if (locationStr) {
-        const coords = JSON.parse(locationStr);
-        setRegion({
-          latitude: coords.latitude,
-          longitude: coords.longitude,
+      // Permission déjà accordée, on récupère juste la position
+      try {
+        const position = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        });
+
+        let currentRegion = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
-        });
+        };
+
+        setRegion(currentRegion);
+      } catch (e) {
+        console.warn("Impossible de récupérer la position :", e);
+        // On garde Paris par défaut
       }
 
+      // Récupérer les restaurants
       const response = await fetch(`${API_URL}/restaurants`);
       const data = await response.json();
+
       if (data.result) {
         setRestaurants(data.restaurants);
 
-        const r = locationStr
-          ? {
-              latitude: JSON.parse(locationStr).latitude,
-              longitude: JSON.parse(locationStr).longitude,
-              latitudeDelta: 0.05,
-              longitudeDelta: 0.05,
-            }
-          : {
-              latitude: 48.8566,
-              longitude: 2.3522,
-              latitudeDelta: 0.05,
-              longitudeDelta: 0.05,
-            };
-
-        const minLat = r.latitude - r.latitudeDelta / 2;
-        const maxLat = r.latitude + r.latitudeDelta / 2;
-        const minLng = r.longitude - r.longitudeDelta / 2;
-        const maxLng = r.longitude + r.longitudeDelta / 2;
+        const minLat = currentRegion.latitude - currentRegion.latitudeDelta / 2;
+        const maxLat = currentRegion.latitude + currentRegion.latitudeDelta / 2;
+        const minLng =
+          currentRegion.longitude - currentRegion.longitudeDelta / 2;
+        const maxLng =
+          currentRegion.longitude + currentRegion.longitudeDelta / 2;
 
         setVisibleRestaurants(
           data.restaurants.filter((resto) => {
@@ -75,6 +74,7 @@ export default function MapScreen() {
         );
       }
     }
+
     loadData();
   }, []);
 

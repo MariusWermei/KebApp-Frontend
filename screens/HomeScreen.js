@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Location from "expo-location";
 
 import { useNavigation } from "@react-navigation/native";
 import { useEffect } from "react";
@@ -36,10 +37,17 @@ export default function HomeScreen() {
 
   useEffect(() => {
     async function fetchData() {
-      // 1. Récupérer la position
+      // 1. Récupérer la position en direct
       try {
-        const locationStr = await AsyncStorage.getItem("userLocation");
-        const userCoords = locationStr ? JSON.parse(locationStr) : null;
+        const position = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        });
+
+        const userCoords = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+
         setCoords(userCoords);
 
         const SORT_TAGS = ["📍 près de vous", "⭐ mieux notés"];
