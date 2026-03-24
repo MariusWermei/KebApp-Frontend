@@ -69,7 +69,6 @@ export default function PreferencesEditScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -78,7 +77,7 @@ export default function PreferencesEditScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.textDark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Gestion des préférences</Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.spacer} />
       </View>
 
       <View style={styles.content}>
@@ -119,7 +118,8 @@ export default function PreferencesEditScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F6F7FB" },
+  safe: { flex: 1, backgroundColor: colors.backgroundPage },
+  spacer: { width: 24 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -171,6 +171,6 @@ const styles = StyleSheet.create({
   },
   tagTextSelected: {
     fontFamily: fonts.family.bold,
-    color: "#fff",
+    color: colors.textWhite,
   },
 });

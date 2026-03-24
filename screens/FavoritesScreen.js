@@ -54,7 +54,6 @@ export default function FavoritesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -63,7 +62,7 @@ export default function FavoritesScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.textDark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Mes Favoris</Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.spacer} />
       </View>
 
       <ScrollView
@@ -101,14 +100,15 @@ export default function FavoritesScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F6F7FB" },
+  safe: { flex: 1, backgroundColor: colors.backgroundPage },
+  spacer: { width: 24 },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "#F6F7FB",
+    backgroundColor: colors.backgroundPage,
   },
   backBtn: { padding: 4 },
   headerTitle: {

@@ -14,7 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../constants/colors";
 import fonts from "../constants/fonts";
-import { safeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -27,17 +27,15 @@ export default function ResetPasswordScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    console.log("🔐 ResetPasswordScreen loaded");
-    console.log("Route params:", route?.params);
-    console.log("Token reçu:", token);
-  }, [route, token]);
-
   if (!token) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorBox}>
-          <Ionicons name="alert-circle-outline" size={60} color="#ff6b6b" />
+          <Ionicons
+            name="alert-circle-outline"
+            size={60}
+            color={colors.error}
+          />
           <Text style={styles.title}>Lien invalide ❌</Text>
           <Text style={styles.subtitle}>
             Token manquant. Assure-toi d'avoir cliqué le lien depuis l'email.
@@ -53,12 +51,9 @@ export default function ResetPasswordScreen({ route, navigation }) {
     );
   }
 
-  // 🎉 Success Screen
   if (success) {
     return (
-      <SafeAreaView
-        style={[styles.container, { backgroundColor: colors.backgroundLight }]}
-      >
+      <SafeAreaView style={styles.containerLight}>
         <View style={styles.successBox}>
           <View style={styles.successCircle}>
             <Ionicons
@@ -75,7 +70,7 @@ export default function ResetPasswordScreen({ route, navigation }) {
           <ActivityIndicator
             color={colors.primary}
             size="large"
-            style={{ marginTop: 24 }}
+            style={styles.loader}
           />
         </View>
       </SafeAreaView>
@@ -104,8 +99,6 @@ export default function ResetPasswordScreen({ route, navigation }) {
     setLoading(true);
 
     try {
-      console.log("📤 Envoi POST /reset-password avec token:", token);
-
       const res = await fetch(`${API_URL}/users/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -113,16 +106,11 @@ export default function ResetPasswordScreen({ route, navigation }) {
       });
 
       const data = await res.json();
-      console.log("📥 Réponse serveur:", data);
 
       if (data.result) {
         setSuccess(true);
-        // Redirection après 2 secondes vers Main (Home)
         setTimeout(() => {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "Main" }],
-          });
+          navigation.reset({ index: 0, routes: [{ name: "Main" }] });
         }, 2000);
       } else {
         Alert.alert(
@@ -131,7 +119,6 @@ export default function ResetPasswordScreen({ route, navigation }) {
         );
       }
     } catch (error) {
-      console.log("❌ Erreur:", error);
       Alert.alert("Erreur réseau", "Impossible de contacter le serveur");
     } finally {
       setLoading(false);
@@ -149,20 +136,19 @@ export default function ResetPasswordScreen({ route, navigation }) {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
+        style={styles.flex}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
           <View style={styles.header}>
             <Ionicons
               name="lock-closed-outline"
               size={50}
               color={colors.primary}
-              style={{ marginBottom: 12 }}
+              style={styles.iconSpacing}
             />
             <Text style={styles.title}>Nouveau mot de passe</Text>
             <Text style={styles.subtitle}>
@@ -170,9 +156,7 @@ export default function ResetPasswordScreen({ route, navigation }) {
             </Text>
           </View>
 
-          {/* Form */}
           <View style={styles.form}>
-            {/* Password */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Nouveau mot de passe</Text>
               <View style={styles.inputWrap}>
@@ -198,7 +182,6 @@ export default function ResetPasswordScreen({ route, navigation }) {
               </View>
             </View>
 
-            {/* Confirm Password */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Confirmer le mot de passe</Text>
               <View style={styles.inputWrap}>
@@ -224,21 +207,20 @@ export default function ResetPasswordScreen({ route, navigation }) {
               </View>
             </View>
 
-            {/* Submit Button */}
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleReset}
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="white" />
+                <ActivityIndicator color={colors.textWhite} />
               ) : (
                 <>
                   <Ionicons
                     name="checkmark-circle-outline"
                     size={20}
-                    color="white"
-                    style={{ marginRight: 8 }}
+                    color={colors.textWhite}
+                    style={styles.buttonIcon}
                   />
                   <Text style={styles.buttonText}>Changer le mot de passe</Text>
                 </>
@@ -246,7 +228,6 @@ export default function ResetPasswordScreen({ route, navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* Security Note */}
           <View style={styles.note}>
             <Ionicons
               name="shield-checkmark-outline"
@@ -268,6 +249,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.backgroundLight,
   },
+  containerLight: {
+    flex: 1,
+    backgroundColor: colors.backgroundLight,
+  },
+  flex: { flex: 1 },
   backButton: {
     paddingLeft: 16,
     paddingTop: 12,
@@ -277,11 +263,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 24,
     justifyContent: "flex-start",
-  },
-  content: {
-    flexGrow: 1,
-    padding: 24,
-    justifyContent: "center",
   },
   errorBox: {
     flex: 1,
@@ -299,7 +280,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "#FFE8D6",
+    backgroundColor: colors.primaryPale,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 24,
@@ -318,12 +299,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
-
-  // HEADER
+  loader: { marginTop: 24 },
   header: {
     alignItems: "center",
     marginBottom: 32,
   },
+  iconSpacing: { marginBottom: 12 },
   title: {
     fontSize: fonts.size.h3,
     fontFamily: fonts.family.bold,
@@ -337,14 +318,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
-
-  // FORM
-  form: {
-    marginBottom: 24,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
+  form: { marginBottom: 24 },
+  inputGroup: { marginBottom: 16 },
   label: {
     fontSize: fonts.size.body,
     fontFamily: fonts.family.semibold,
@@ -356,7 +331,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.backgroundCream,
     borderWidth: 1,
-    borderColor: "#E8E8E8",
+    borderColor: colors.progressBg,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -367,11 +342,7 @@ const styles = StyleSheet.create({
     fontSize: fonts.size.body,
     color: colors.textDark,
   },
-  eyeBtn: {
-    padding: 8,
-  },
-
-  // BUTTON
+  eyeBtn: { padding: 8 },
   button: {
     flexDirection: "row",
     alignItems: "center",
@@ -381,20 +352,17 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginTop: 8,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
+  buttonDisabled: { opacity: 0.6 },
+  buttonIcon: { marginRight: 8 },
   buttonText: {
     fontSize: fonts.size.body,
     fontFamily: fonts.family.bold,
-    color: "white",
+    color: colors.textWhite,
   },
-
-  // NOTE
   note: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFF8E1",
+    backgroundColor: colors.warningBg,
     borderRadius: 8,
     padding: 12,
     gap: 10,

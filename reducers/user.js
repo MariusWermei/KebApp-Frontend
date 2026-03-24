@@ -32,12 +32,9 @@ const userSlice = createSlice({
       state.username = null;
       state.email = null;
       state.avatar = null;
-      console.log("Token reducer =>", state.token);
-      // On ne reset PAS hasOnboarded — même après un logout,
-      // l'utilisateur ne doit pas revoir l'onboarding
+      // hasOnboarded non réinitialisé — l'utilisateur ne doit pas revoir l'onboarding après logout
     },
-    // Reset Onboarding spécialement pour la période de développement, permet de reset le store persistant
-    // A SUPPRIMER POUR LE MVP DE FIN
+    // À supprimer pour le MVP — permet de reset le store persistant en dev
     resetOnboarding: (state) => {
       state.token = null;
       state.preferences = [];
@@ -49,26 +46,20 @@ const userSlice = createSlice({
     addFavorite: (state, action) => {
       if (!state.favorites.includes(action.payload)) {
         state.favorites.push(action.payload);
-        console.log("favorites reducer =>", state.favorites);
       }
     },
     removeFavorite: (state, action) => {
       state.favorites = state.favorites.filter((id) => id !== action.payload);
-      console.log("favorites reducer =>", state.favorites);
     },
     addCbCard: (state, action) => {
-      if (!Array.isArray(state.cbCard)) {
-        state.cbCard = [];
-      }
+      if (!Array.isArray(state.cbCard)) state.cbCard = [];
       state.cbCard.push(action.payload);
     },
     setCbCards: (state, action) => {
       state.cbCard = Array.isArray(action.payload) ? action.payload : [];
     },
     removeCbCard: (state, action) => {
-      if (!Array.isArray(state.cbCard)) {
-        state.cbCard = [];
-      }
+      if (!Array.isArray(state.cbCard)) state.cbCard = [];
       state.cbCard = state.cbCard.filter((card) => card.id !== action.payload);
     },
     removeAllUsers: (state) => {

@@ -25,6 +25,13 @@ export default function CustomAlert({
     }
   }, [visible, type, onClose]);
 
+  const borderColor =
+    type === "success"
+      ? colors.alertSuccess
+      : type === "error"
+        ? colors.alertError
+        : colors.alertWarning;
+
   return (
     <Modal
       visible={visible}
@@ -41,23 +48,11 @@ export default function CustomAlert({
         activeOpacity={1}
       >
         <TouchableOpacity
-          style={[
-            styles.alertBox,
-            type === "success" && { borderLeftColor: "#4CAF50" },
-            type === "error" && { borderLeftColor: "#F44336" },
-            type === "warning" && { borderLeftColor: "#FF9800" },
-          ]}
+          style={[styles.alertBox, { borderLeftColor: borderColor }]}
           onPress={() => {}}
           activeOpacity={1}
         >
-          <View
-            style={[
-              styles.alertIcon,
-              type === "success" && { backgroundColor: "#4CAF50" },
-              type === "error" && { backgroundColor: "#F44336" },
-              type === "warning" && { backgroundColor: "#FF9800" },
-            ]}
-          >
+          <View style={[styles.alertIcon, { backgroundColor: borderColor }]}>
             <Ionicons
               name={
                 type === "success"
@@ -67,7 +62,7 @@ export default function CustomAlert({
                     : "alert-circle"
               }
               size={24}
-              color="white"
+              color={colors.textWhite}
             />
           </View>
           <View style={styles.alertContent}>
@@ -89,7 +84,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   alertBox: {
-    backgroundColor: "white",
+    backgroundColor: colors.backgroundLight,
     borderRadius: 16,
     padding: 20,
     flexDirection: "row",

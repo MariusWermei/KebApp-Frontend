@@ -57,9 +57,7 @@ export default function PaymentMethodScreen() {
     timeoutRef.current = setTimeout(() => setShowAlert(false), timeout);
   };
 
-  const openAddCard = () => {
-    addCardSheetRef.current?.expand();
-  };
+  const openAddCard = () => addCardSheetRef.current?.expand();
 
   const closeAddCard = () => {
     addCardSheetRef.current?.close();
@@ -154,7 +152,6 @@ export default function PaymentMethodScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -163,7 +160,7 @@ export default function PaymentMethodScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.textDark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Méthode de paiement</Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.spacer} />
       </View>
 
       <View style={styles.content}>
@@ -229,7 +226,7 @@ export default function PaymentMethodScreen() {
         <BottomSheetView style={styles.sheetContainer}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={{ flex: 1 }}
+            style={styles.flex}
           >
             <Text style={styles.sheetTitle}>Ajouter une carte</Text>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -266,7 +263,7 @@ export default function PaymentMethodScreen() {
               </View>
 
               <View style={styles.rowGroup}>
-                <View style={[styles.formGroup, { flex: 1, marginRight: 12 }]}>
+                <View style={styles.formGroupFlex}>
                   <Text style={styles.label}>Mois</Text>
                   <TextInput
                     style={styles.input}
@@ -280,7 +277,7 @@ export default function PaymentMethodScreen() {
                     }
                   />
                 </View>
-                <View style={[styles.formGroup, { flex: 1, marginRight: 12 }]}>
+                <View style={styles.formGroupFlex}>
                   <Text style={styles.label}>Année</Text>
                   <TextInput
                     style={styles.input}
@@ -294,7 +291,7 @@ export default function PaymentMethodScreen() {
                     }
                   />
                 </View>
-                <View style={[styles.formGroup, { flex: 1 }]}>
+                <View style={styles.formGroupLast}>
                   <Text style={styles.label}>CVV</Text>
                   <TextInput
                     style={styles.input}
@@ -311,7 +308,7 @@ export default function PaymentMethodScreen() {
               </View>
 
               <TouchableOpacity
-                style={[styles.submitBtn, loading && { opacity: 0.6 }]}
+                style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
                 onPress={handleAddCard}
                 disabled={loading}
               >
@@ -335,8 +332,8 @@ export default function PaymentMethodScreen() {
           <Ionicons
             name="trash-outline"
             size={40}
-            color="#F44336"
-            style={{ marginBottom: 16, alignSelf: "center" }}
+            color={colors.error}
+            style={styles.trashIcon}
           />
           <Text style={styles.confirmTitle}>Supprimer la carte ?</Text>
           <Text style={styles.confirmMessage}>
@@ -372,7 +369,9 @@ export default function PaymentMethodScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F6F7FB" },
+  safe: { flex: 1, backgroundColor: colors.backgroundPage },
+  flex: { flex: 1 },
+  spacer: { width: 24 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -386,10 +385,7 @@ const styles = StyleSheet.create({
     fontSize: fonts.size.h4,
     color: colors.textDark,
   },
-  content: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-  },
+  content: { paddingHorizontal: 24, paddingTop: 16 },
   sectionLabel: {
     fontFamily: fonts.family.semibold,
     fontSize: fonts.size.body,
@@ -407,11 +403,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  cardLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-  },
+  cardLeft: { flexDirection: "row", alignItems: "center", gap: 14 },
   cardInfo: { gap: 2 },
   cardType: {
     fontFamily: fonts.family.bold,
@@ -459,7 +451,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   deleteCardBtn: { padding: 8 },
-  // BottomSheet
   sheetContainer: {
     justifyContent: "flex-end",
     flex: 1,
@@ -474,6 +465,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   formGroup: { marginBottom: 20 },
+  formGroupFlex: { flex: 1, marginBottom: 20, marginRight: 12 },
+  formGroupLast: { flex: 1, marginBottom: 20 },
   rowGroup: { flexDirection: "row" },
   label: {
     fontFamily: fonts.family.semibold,
@@ -500,10 +493,15 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 32,
   },
+  submitBtnDisabled: { opacity: 0.6 },
   submitBtnText: {
     fontFamily: fonts.family.bold,
     fontSize: fonts.size.body,
-    color: "white",
+    color: colors.textWhite,
+  },
+  trashIcon: {
+    marginBottom: 16,
+    alignSelf: "center",
   },
   confirmTitle: {
     fontFamily: fonts.family.bold,
@@ -519,10 +517,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 24,
   },
-  buttonGroup: {
-    flexDirection: "row",
-    gap: 12,
-  },
+  buttonGroup: { flexDirection: "row", gap: 12 },
   cancelBtn: {
     flex: 1,
     borderWidth: 1,
@@ -538,7 +533,7 @@ const styles = StyleSheet.create({
   },
   deleteBtnConfirm: {
     flex: 1,
-    backgroundColor: "#F44336",
+    backgroundColor: colors.error,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center",
@@ -546,6 +541,6 @@ const styles = StyleSheet.create({
   deleteBtnText: {
     fontFamily: fonts.family.semibold,
     fontSize: fonts.size.body,
-    color: "white",
+    color: colors.textWhite,
   },
 });

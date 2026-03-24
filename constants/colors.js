@@ -24,6 +24,11 @@ const colors = {
   error: "#EF4444", // fermé, erreur
   googleBlue: "#4285F4", // bouton Google Pay / icône Google
 
+  // --- Alertes (CustomAlert) ---
+  alertSuccess: "#4CAF50",
+  alertError: "#F44336",
+  alertWarning: "#FF9800",
+
   // --- Teintes douces (avatars, badges, fonds) ---
   primaryLight: "#FFF3E8", // fond boutons logout/reset, badge moreButton
   primaryPale: "#FFE8D6", // fond avatar placeholder
@@ -32,6 +37,7 @@ const colors = {
   iconBg: "#F7E7DE", // fond icône dans SignIn/SignUp
   progressBg: "#E8E8E8", // fond barre de progression
   cardBg: "#F8F8F8", // fond container CommandesScreen
+  warningBg: "#FFF8E1", // fond note d'avertissement
 
   // --- Textes secondaires ---
   textStrong: "#222", // titres forts CommandesScreen

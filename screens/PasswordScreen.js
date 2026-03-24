@@ -10,7 +10,6 @@ export default function PasswordScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -19,11 +18,10 @@ export default function PasswordScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.textDark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Mot de passe</Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.spacer} />
       </View>
 
       <View style={styles.content}>
-        {/* Info card */}
         <View style={styles.infoCard}>
           <Ionicons
             name="lock-closed-outline"
@@ -38,20 +36,18 @@ export default function PasswordScreen() {
           </Text>
         </View>
 
-        {/* Password field (fake, juste visuel) */}
         <Text style={styles.label}>Mot de passe actuel</Text>
         <View style={styles.fakeInput}>
           <Text style={styles.fakePassword}>••••••••••••</Text>
           <Ionicons name="eye-off-outline" size={20} color={colors.textLight} />
         </View>
 
-        {/* Bouton reset */}
         <TouchableOpacity
           style={styles.resetBtn}
           onPress={() => navigation.navigate("ForgotPassword")}
           activeOpacity={0.8}
         >
-          <Ionicons name="mail-outline" size={20} color="#fff" />
+          <Ionicons name="mail-outline" size={20} color={colors.textWhite} />
           <Text style={styles.resetBtnText}>
             Réinitialiser mon mot de passe
           </Text>
@@ -66,7 +62,8 @@ export default function PasswordScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F6F7FB" },
+  safe: { flex: 1, backgroundColor: colors.backgroundPage },
+  spacer: { width: 24 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -85,7 +82,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   infoCard: {
-    backgroundColor: "#FFF3E8",
+    backgroundColor: colors.primaryLight,
     borderRadius: 16,
     padding: 20,
     alignItems: "center",
@@ -141,7 +138,7 @@ const styles = StyleSheet.create({
   resetBtnText: {
     fontFamily: fonts.family.bold,
     fontSize: fonts.size.body,
-    color: "#fff",
+    color: colors.textWhite,
   },
   hint: {
     fontFamily: fonts.family.regular,

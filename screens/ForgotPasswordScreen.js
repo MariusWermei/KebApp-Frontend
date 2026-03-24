@@ -67,12 +67,12 @@ export default function ForgotPasswordScreen({ navigation }) {
             <Text style={styles.title}>Email envoyé</Text>
             <Text style={styles.subtitle}>
               Si un compte existe pour{" "}
-              <Text style={{ fontFamily: fonts.family.bold }}>{email}</Text>, tu
-              vas recevoir un lien de réinitialisation (valable 1h).
+              <Text style={styles.emailBold}>{email}</Text>, tu vas recevoir un
+              lien de réinitialisation (valable 1h).
             </Text>
 
             <TouchableOpacity
-              style={[styles.button, { marginTop: 18 }]}
+              style={styles.buttonSpaced}
               onPress={() => navigation.goBack()}
             >
               <Text style={styles.buttonText}>Retour</Text>
@@ -106,6 +106,7 @@ export default function ForgotPasswordScreen({ navigation }) {
             style={styles.input}
             autoCapitalize="none"
             keyboardType="email-address"
+            placeholderTextColor={colors.textLight}
           />
 
           {!!error && <Text style={styles.error}>{error}</Text>}
@@ -116,7 +117,7 @@ export default function ForgotPasswordScreen({ navigation }) {
             disabled={status === "loading"}
           >
             {status === "loading" ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={colors.textWhite} />
             ) : (
               <Text style={styles.buttonText}>Envoyer le lien</Text>
             )}
@@ -130,7 +131,7 @@ export default function ForgotPasswordScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F6F7FB",
+    backgroundColor: colors.backgroundPage,
   },
   backButton: {
     paddingLeft: 16,
@@ -154,30 +155,39 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.backgroundLight,
     padding: 20,
     borderRadius: 16,
     alignItems: "center",
   },
   title: {
-    fontSize: 22,
-    fontWeight: "bold",
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.h3,
+    color: colors.textDark,
     textAlign: "center",
     marginBottom: 10,
   },
   subtitle: {
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
     textAlign: "center",
-    color: "#666",
+    color: colors.textGray,
     lineHeight: 20,
     marginBottom: 18,
   },
+  emailBold: {
+    fontFamily: fonts.family.bold,
+  },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: colors.inactive,
     borderRadius: 10,
     padding: 12,
-    backgroundColor: "#fff",
+    backgroundColor: colors.backgroundLight,
     marginBottom: 10,
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.body,
+    color: colors.textDark,
   },
   button: {
     backgroundColor: colors.primary,
@@ -186,6 +196,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 14,
   },
-  buttonText: { color: "white", fontWeight: "bold" },
-  error: { color: "#D44", marginBottom: 10, textAlign: "center" },
+  buttonSpaced: {
+    backgroundColor: colors.primary,
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 18,
+    width: "100%",
+  },
+  buttonText: {
+    fontFamily: fonts.family.bold,
+    fontSize: fonts.size.body,
+    color: colors.textWhite,
+  },
+  error: {
+    fontFamily: fonts.family.regular,
+    fontSize: fonts.size.small,
+    color: colors.error,
+    marginBottom: 10,
+    textAlign: "center",
+  },
 });
