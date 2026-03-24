@@ -16,13 +16,11 @@ export default function PaymentScreen() {
   const timeoutRef = useRef(null);
   const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-  // 📦 État global Redux
   const cbCard = useSelector((state) => state.user.cbCard);
   const cartItems = useSelector((state) => state.cart.items);
   const restaurantName = useSelector((state) => state.cart.restaurantName);
   const token = useSelector((state) => state.user.token);
 
-  // 💳 États pour la sélection et le paiement
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
@@ -32,23 +30,11 @@ export default function PaymentScreen() {
     message: "",
   });
 
-  // 💵 Calcul du prix total
   const totalPrice = cartItems.reduce(
     (sum, i) => sum + i.quantity * i.menuItem.basePrice,
     0,
   );
 
-  console.log("💰 DEBUG totalPrice:", {
-    cartItems: cartItems.length,
-    items: cartItems.map((i) => ({
-      name: i.menuItem.name,
-      qty: i.quantity,
-      price: i.menuItem.basePrice,
-    })),
-    totalPrice,
-  });
-
-  // 🔔 Afficher une alerte personnalisée
   const showCustomAlert = (type, title, message) => {
     setAlertData({ type, title, message });
     setAlertVisible(true);
@@ -56,21 +42,13 @@ export default function PaymentScreen() {
     timeoutRef.current = setTimeout(() => setAlertVisible(false), timeout);
   };
 
-  // 📍 Nettoyer les timeouts au montage/démontage
   useEffect(() => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
-  // 💳 Créer la commande et payer
   const handlePay = async () => {
-    console.log("🔵 handlePay called");
-    console.log("📦 cartItems:", cartItems);
-    console.log("🏪 restaurantName:", restaurantName);
-    console.log("🔐 Token:", token);
-    console.log("🌐 API_URL:", API_URL);
-
     if (cartItems.length === 0) {
       showCustomAlert(
         "warning",
@@ -91,29 +69,18 @@ export default function PaymentScreen() {
 
     setIsProcessingPayment(true);
     try {
-      // Transformer les items du panier au format attendu par le backend
       const items = cartItems.map((cartItem) => ({
         name: cartItem.menuItem.name,
         quantity: cartItem.quantity,
         unitPrice: cartItem.menuItem.basePrice,
       }));
 
-      console.log("✅ Items transformés:", JSON.stringify(items, null, 2));
-
-      // Préparer le payload
       const payload = {
-        restaurant: {
-          name: restaurantName,
-        },
+        restaurant: { name: restaurantName },
         items,
         totalPrice: Math.round(totalPrice * 100) / 100,
       };
 
-      console.log("📤 Envoi de la commande:", payload);
-      console.log("📍 URL API:", `${API_URL}/commandes`);
-      console.log("🔐 Token:", token);
-
-      // Envoyer la commande au backend avec token en header
       const response = await fetch(`${API_URL}/commandes`, {
         method: "POST",
         headers: {
@@ -124,24 +91,19 @@ export default function PaymentScreen() {
       });
 
       const data = await response.json();
-      console.log("📨 Réponse reçue:", response.status);
-      console.log("📦 Données reçues du backend:", data);
 
       if (data.result) {
-        console.log("✅ Succès! Commande créée");
         const orderNumber = data.order?.orderNumber || "N/A";
         showCustomAlert(
           "success",
-          "Commande validée ! Tu as gagne 100 points de fidélité 🎉",
+          "Commande validée ! Tu as gagné 100 points de fidélité 🎉",
           `Numéro: ${orderNumber}\nTa commande a été créée avec succès.`,
         );
-        // Vider le panier et naviger
         dispatch(clearCart());
         setTimeout(() => {
           navigation.navigate("Main", { screen: "Commandes" });
         }, 2000);
       } else {
-        console.log("❌ Erreur:", data.message);
         showCustomAlert(
           "error",
           "Erreur",
@@ -149,7 +111,6 @@ export default function PaymentScreen() {
         );
       }
     } catch (error) {
-      console.error("❌ Erreur paiement:", error);
       showCustomAlert(
         "error",
         "Erreur réseau",
@@ -159,6 +120,7 @@ export default function PaymentScreen() {
       setIsProcessingPayment(false);
     }
   };
+
   const handleAddPoints = async (points) => {
     try {
       const response = await fetch(`${API_URL}/users/points`, {
@@ -171,18 +133,16 @@ export default function PaymentScreen() {
       });
 
       const data = await response.json();
-      if (data.result) {
-        console.log("✅ Points mis à jour:", data);
-      } else {
-        console.log("❌ Erreur mise à jour points:", data.message);
+      if (!data.result) {
+        // Points update failed silently
       }
     } catch (error) {
-      console.error("❌ Erreur réseau mise à jour points:", error);
+      // Network error silently ignored
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.backgroundLight }}>
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity
@@ -194,17 +154,19 @@ export default function PaymentScreen() {
           </TouchableOpacity>
           <Text style={styles.title}>Paiement</Text>
         </View>
+
         <View style={styles.totalPrice}>
           <Text style={styles.totalText}>Montant à payer</Text>
           <Text style={styles.totalValue}>
             {(totalPrice / 100).toFixed(2)}€
           </Text>
         </View>
+
         <View style={styles.paymentMethods}>
           <Button
             height={50}
             fontSize={20}
-            backgroundColor="#191212ff"
+            backgroundColor={colors.backgroundDark}
             color={colors.textWhite}
             title="Apple Pay"
             onPress={() => {
@@ -216,17 +178,10 @@ export default function PaymentScreen() {
               setAlertVisible(true);
             }}
           />
-          <CustomAlert
-            visible={alertVisible}
-            type={alertData.type}
-            title={alertData.title}
-            message={alertData.message}
-            onClose={() => setAlertVisible(false)}
-          />
           <Button
             height={50}
             fontSize={20}
-            backgroundColor="#4285F4"
+            backgroundColor={colors.googleBlue}
             color={colors.textWhite}
             title="Google Pay"
             onPress={() => {
@@ -238,14 +193,8 @@ export default function PaymentScreen() {
               setAlertVisible(true);
             }}
           />
-          <CustomAlert
-            visible={alertVisible}
-            type={alertData.type}
-            title={alertData.title}
-            message={alertData.message}
-            onClose={() => setAlertVisible(false)}
-          />
         </View>
+
         <View style={styles.cardInfo}>
           <Text style={styles.cardText}>
             Sélectionnez une carte enregistrée :
@@ -277,8 +226,9 @@ export default function PaymentScreen() {
             )}
           </ScrollView>
         </View>
+
         <Button
-          backgroundColor="white"
+          backgroundColor={colors.backgroundLight}
           borderWidth={2}
           borderColor={colors.primary}
           color={colors.primary}
@@ -286,17 +236,19 @@ export default function PaymentScreen() {
           title="Ajouter une carte"
           onPress={() => navigation.navigate("PaymentMethod")}
         />
+
         <View style={styles.footer}>
           <Button
             disabled={!selectedCardId || isProcessingPayment}
             fontSize={18}
-            title="payer"
+            title="Payer"
             onPress={() => {
               handlePay();
-              handleAddPoints(100); // +100 points fidélité
+              handleAddPoints(100);
             }}
           />
         </View>
+
         <CustomAlert
           visible={alertVisible}
           type={alertData.type}
@@ -305,18 +257,15 @@ export default function PaymentScreen() {
           onClose={() => setAlertVisible(false)}
         />
       </View>
-      <CustomAlert
-        visible={alertVisible}
-        type={alertData.type}
-        title={alertData.title}
-        message={alertData.message}
-        onClose={() => setAlertVisible(false)}
-      />
     </SafeAreaView>
   );
 }
 
 const styles = {
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.backgroundLight,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 20,
@@ -336,9 +285,7 @@ const styles = {
     fontFamily: fonts.family.semibold,
     color: colors.primary,
   },
-  header: {
-    width: "100%",
-  },
+  header: { width: "100%" },
   title: {
     fontSize: fonts.size.h3,
     fontFamily: fonts.family.bold,
@@ -347,10 +294,8 @@ const styles = {
   },
   totalPrice: {
     marginVertical: 20,
-
     borderWidth: 2,
     borderColor: colors.border,
-    borderStyle: "solid",
     padding: 10,
     borderRadius: 13,
     width: "100%",
@@ -363,10 +308,13 @@ const styles = {
     fontFamily: fonts.family.regular,
     color: colors.textDark,
   },
-  cardInfo: {
-    width: "100%",
-    marginTop: 20,
+  totalValue: {
+    fontFamily: fonts.family.bold,
+    fontSize: 26,
+    color: colors.primary,
   },
+  paymentMethods: { width: "100%", gap: 12 },
+  cardInfo: { width: "100%", marginTop: 20 },
   cardActions: {
     marginTop: 10,
     width: "100%",
@@ -381,15 +329,6 @@ const styles = {
     fontSize: fonts.size.body,
     fontFamily: fonts.family.regular,
     color: colors.textDark,
-  },
-  totalValue: {
-    fontFamily: fonts.family.bold,
-    fontSize: 26,
-    color: colors.primary,
-  },
-  paymentMethods: {
-    width: "100%",
-    gap: 12,
   },
   cardItem: {
     borderWidth: 1,
@@ -410,8 +349,5 @@ const styles = {
     color: colors.primary,
     marginBottom: 4,
   },
-  footer: {
-    width: "100%",
-    alignItems: "center",
-  },
+  footer: { width: "100%", alignItems: "center" },
 };

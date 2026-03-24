@@ -18,8 +18,7 @@ import fonts from "../constants/fonts";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useDispatch } from "react-redux";
-import { setToken } from "../reducers/user";
-import { setUser } from "../reducers/user";
+import { setToken, setUser } from "../reducers/user";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -79,8 +78,6 @@ export default function SignInScreen() {
     }
   };
 
-  const goBack = () => navigation.goBack();
-
   const handleGoogle = () => {
     Alert.alert("Info", "Google login à brancher ensuite");
   };
@@ -113,7 +110,6 @@ export default function SignInScreen() {
                 )}
               </TouchableOpacity>
 
-              {/* Logo */}
               <View style={styles.logoWrap}>
                 <View style={styles.logoBox}>
                   <Text style={styles.logoMark}>{"</>"}</Text>
@@ -125,7 +121,6 @@ export default function SignInScreen() {
                 Entre tes informations pour créer ton compte
               </Text>
 
-              {/* Username */}
               <Text style={styles.label}>Nom d'utilisateur</Text>
               <View style={styles.inputWrap}>
                 <TextInput
@@ -138,7 +133,6 @@ export default function SignInScreen() {
                 />
               </View>
 
-              {/* Email */}
               <Text style={styles.label}>Email</Text>
               <View style={styles.inputWrap}>
                 <TextInput
@@ -152,7 +146,6 @@ export default function SignInScreen() {
                 />
               </View>
 
-              {/* Password */}
               <Text style={styles.label}>Mot de passe</Text>
               <View style={styles.inputWrap}>
                 <TextInput
@@ -176,20 +169,17 @@ export default function SignInScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Button */}
               <Button
                 title={loading ? "Inscription..." : "S'inscrire"}
                 onPress={handleSignup}
               />
 
-              {/* Divider OR */}
               <View style={styles.dividerRow}>
                 <View style={styles.dividerLine} />
                 <Text style={styles.dividerText}>OU</Text>
                 <View style={styles.dividerLine} />
               </View>
 
-              {/* Google */}
               <TouchableOpacity
                 style={styles.secondaryBtn}
                 onPress={handleGoogle}
@@ -252,7 +242,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 18,
-    backgroundColor: "#F7E7DE",
+    backgroundColor: colors.iconBg,
     alignItems: "center",
     justifyContent: "center",
   },

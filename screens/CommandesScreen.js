@@ -1,11 +1,9 @@
 import React from "react";
 import {
   View,
-  Button,
   StyleSheet,
   TouchableOpacity,
   Text,
-  SafeAreaViewBase,
   ScrollView,
   Image,
   Modal,
@@ -17,6 +15,7 @@ import colors from "../constants/colors";
 import fonts from "../constants/fonts";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+
 export default function CommandesScreen({ navigation }) {
   const token = useSelector((state) => state.user.token);
   const [orders, setOrders] = useState([]);
@@ -27,68 +26,54 @@ export default function CommandesScreen({ navigation }) {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setRefresh((prev) => prev + 1); // toutes les 20s → incrémente refresh
+      setRefresh((prev) => prev + 1);
     }, 20000);
-    return () => clearInterval(interval); // stoppe le timer quand on quitte la page
+    return () => clearInterval(interval);
   }, []);
+
   useFocusEffect(
     React.useCallback(() => {
-      console.log("token:", token);
       fetch(`${apiUrl}/commandes`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => res.json())
         .then((data) => {
-          if (data.result) {
-            const orders = data.orders;
-
-            if (orders.length === 0) {
-              return;
-            }
-
-            setOrders(orders);
-          } else {
-            console.error("Error fetching orders:", data.message);
+          if (data.result && data.orders.length > 0) {
+            setOrders(data.orders);
           }
         })
-        .catch((error) => {
-          console.error("Network error:", error);
-        });
+        .catch(() => {});
+
       fetch(`${apiUrl}/restaurants`)
         .then((res) => res.json())
         .then((data) => {
           if (data.result) setRestaurants(data.restaurants);
         })
-        .catch((error) => console.error("Erreur fetch restaurants:", error));
+        .catch(() => {});
     }, [refresh]),
   );
-  const getLogoUrl = (restaurantName) => {
-    const resto = restaurants.find((r) => r.name === restaurantName);
-    return resto?.photos?.[0];
-  };
-  const handleDevOrderUpdate = async (orderId, status) => {
+
+  const handleDevOrderUpdate = async (orderId) => {
     const response = await fetch(`${apiUrl}/commandes/${orderId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // ton token JWT
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        status: "DELIVERED", // ou "PENDING", "IN_PROGRESS", etc.
-      }),
+      body: JSON.stringify({ status: "DELIVERED" }),
     });
-
     const data = await response.json();
-
-    if (data.result) {
-      console.log("Commande mise à jour :", data.order);
-    } else {
-      console.log("Erreur :", data.message);
+    if (!data.result) {
+      console.log("Erreur mise à jour commande:", data.message);
     }
   };
+
+  const getLogoUrl = (restaurantName) => {
+    const resto = restaurants.find((r) => r.name === restaurantName);
+    return resto?.photos?.[0];
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -105,35 +90,35 @@ export default function CommandesScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Current Orders */}
-        <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
+        {/* Commandes en cours */}
+        <View style={styles.currentOrdersContainer}>
           <Text style={styles.sectionTitle}>
             Commandes en cours{" "}
             <Text
-              style={
-                orders.filter((order) => !order.orderStatus.isFinalized)
-                  .length === 0
-                  ? [styles.orangeDot, { color: "#222" }]
-                  : styles.orangeDot
-              }
+              style={[
+                styles.orangeDot,
+                orders.filter((o) => !o.orderStatus.isFinalized).length ===
+                  0 && { color: colors.textStrong },
+              ]}
             >
               •
             </Text>
           </Text>
-          {orders.filter((order) => !order.orderStatus.isFinalized).length ===
-            0 && (
+
+          {orders.filter((o) => !o.orderStatus.isFinalized).length === 0 && (
             <View style={styles.emptyContainer}>
               <Ionicons
                 name="file-tray-outline"
                 size={48}
-                color={colors.gray}
-                style={{ marginBottom: 8 }}
+                color={colors.textMuted}
+                style={styles.emptyIcon}
               />
               <Text style={styles.emptyText}>Aucune commande en cours</Text>
             </View>
           )}
+
           {orders
-            .filter((order) => !order.orderStatus.isFinalized)
+            .filter((o) => !o.orderStatus.isFinalized)
             .map((order) => (
               <View key={order._id} style={styles.card}>
                 <View style={styles.cardHeader}>
@@ -146,36 +131,20 @@ export default function CommandesScreen({ navigation }) {
                   ) : (
                     <View style={styles.logoPlaceholder} />
                   )}
-                  <View style={{ flex: 1 }}>
+                  <View style={styles.cardInfo}>
                     <Text style={styles.restaurantName}>
                       {order.restaurant.name}
-                      {/* Button de dev (DELIVERED) /* À supprimer en prod */}
+                      {/* Bouton dev — à supprimer en prod */}
                       <TouchableOpacity
                         onPress={() => {
                           handleDevOrderUpdate(order._id, "DELIVERED");
                           setRefresh((prev) => prev + 1);
                         }}
-                        style={{
-                          backgroundColor: "#FF6600",
-                          paddingHorizontal: 2,
-                          paddingVertical: 2,
-                          borderRadius: 4,
-                          marginLeft: 10,
-                          gap: 4,
-                        }}
+                        style={styles.devButton}
                       >
-                        <Text
-                          style={{
-                            color: "#fff",
-                            fontSize: 7,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          DELIVERED
-                        </Text>
+                        <Text style={styles.devButtonText}>DELIVERED</Text>
                       </TouchableOpacity>
                     </Text>
-
                     <Text style={styles.orderNumber}>
                       N° de commande :{" "}
                       {order?.orderNumber?.slice(0, 3) +
@@ -185,14 +154,12 @@ export default function CommandesScreen({ navigation }) {
                   </View>
                 </View>
 
-                {/* Progress bar */}
+                {/* Barre de progression */}
                 <View style={styles.progressBarContainer}>
                   <View
                     style={[
                       styles.progressBar,
-                      order.orderStatus.step === "ACCEPTED" && {
-                        width: "33%",
-                      },
+                      order.orderStatus.step === "ACCEPTED" && { width: "33%" },
                       order.orderStatus.step === "PREPARING" && {
                         width: "66%",
                       },
@@ -234,7 +201,7 @@ export default function CommandesScreen({ navigation }) {
                     name="time-outline"
                     size={16}
                     color={colors.primary}
-                    style={{ marginRight: 4 }}
+                    style={styles.arrivalIcon}
                   />
                   <Text style={styles.arrivalText}>
                     Arrivée prévue à :{" "}
@@ -253,7 +220,7 @@ export default function CommandesScreen({ navigation }) {
                 >
                   <Text style={styles.moreButtonText}>En savoir plus</Text>
                 </TouchableOpacity>
-                {/* Modal pour les détails de la commande */}
+
                 <Modal
                   visible={selectedOrderId === order._id}
                   animationType="slide"
@@ -292,30 +259,27 @@ export default function CommandesScreen({ navigation }) {
             ))}
         </View>
 
-        {/* Past Orders */}
-        <Text style={[styles.sectionTitle, { paddingLeft: 20 }]}>
+        {/* Commandes précédentes */}
+        <Text style={[styles.sectionTitle, styles.pastOrdersTitle]}>
           Commandes précédentes
         </Text>
-        <ScrollView
-          style={{ paddingHorizontal: 20, marginTop: 20, marginBottom: 20 }}
-        >
-          {orders.filter((order) => order.orderStatus.isFinalized).length ===
-            0 && (
+        <ScrollView style={styles.pastOrdersList}>
+          {orders.filter((o) => o.orderStatus.isFinalized).length === 0 && (
             <View style={styles.emptyContainer}>
               <Ionicons
                 name="time-outline"
                 size={48}
-                color={colors.gray}
-                style={{ marginBottom: 8 }}
+                color={colors.textMuted}
+                style={styles.emptyIcon}
               />
               <Text style={styles.emptyText}>
-                {" "}
                 Vos commandes apparaîtront ici une fois passées.
               </Text>
             </View>
           )}
+
           {orders
-            .filter((order) => order.orderStatus.isFinalized)
+            .filter((o) => o.orderStatus.isFinalized)
             .map((order) => (
               <View key={order._id} style={styles.card}>
                 <View style={styles.cardHeader}>
@@ -328,8 +292,7 @@ export default function CommandesScreen({ navigation }) {
                   ) : (
                     <View style={styles.logoPlaceholder} />
                   )}
-
-                  <View style={{ flex: 1 }}>
+                  <View style={styles.cardInfo}>
                     <Text style={styles.restaurantName}>
                       {order.restaurant.name}
                     </Text>
@@ -347,12 +310,14 @@ export default function CommandesScreen({ navigation }) {
                     </Text>
                   </View>
                 </View>
+
                 <TouchableOpacity
                   style={styles.moreButton}
                   onPress={() => setSelectedOrderId(order._id)}
                 >
                   <Text style={styles.moreButtonText}>En savoir plus</Text>
                 </TouchableOpacity>
+
                 <Modal
                   visible={selectedOrderId === order._id}
                   animationType="slide"
@@ -398,7 +363,7 @@ export default function CommandesScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F8F8",
+    backgroundColor: colors.cardBg,
   },
   modalContainer: {
     width: "100%",
@@ -415,8 +380,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     borderWidth: 1,
-
-    backgroundColor: "#fff",
+    backgroundColor: colors.backgroundLight,
     borderRadius: 8,
     padding: 30,
     paddingHorizontal: 50,
@@ -430,7 +394,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 50,
   },
   closeButtonText: {
-    color: "#fff",
+    color: colors.textWhite,
     fontWeight: "bold",
     fontSize: 15,
   },
@@ -442,7 +406,7 @@ const styles = StyleSheet.create({
   },
   modalItems: {
     fontSize: 15,
-    color: "#333",
+    color: colors.textSubtle,
     lineHeight: 24,
     marginBottom: 24,
     textAlign: "center",
@@ -453,19 +417,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: "#3834343b",
-    backgroundColor: "#fff",
+    borderBottomColor: colors.border,
+    backgroundColor: colors.backgroundLight,
   },
-  backButton: {
-    marginRight: 20,
-  },
-  searchButton: {
-    marginLeft: 20,
-  },
-  title: {
-    flex: 1,
-    alignItems: "center",
-  },
+  backButton: { marginRight: 20 },
+  title: { flex: 1, alignItems: "center" },
   titleText: {
     fontSize: fonts.size.large,
     fontWeight: "bold",
@@ -475,10 +431,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 12,
-    color: "#222",
+    color: colors.textStrong,
   },
   orangeDot: {
-    color: "#FF6600",
+    color: colors.primary,
     fontSize: 18,
   },
   emptyContainer: {
@@ -487,7 +443,7 @@ const styles = StyleSheet.create({
     marginVertical: 32,
   },
   emptyText: {
-    color: colors.gray,
+    color: colors.textMuted,
     fontSize: 16,
     fontWeight: "500",
     marginBottom: 10,
@@ -495,7 +451,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.backgroundLight,
     borderRadius: 14,
     padding: 16,
     marginBottom: 16,
@@ -514,29 +470,29 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 8,
-    backgroundColor: "#E8D7C3",
+    backgroundColor: colors.primaryPale,
     marginRight: 12,
   },
   restaurantName: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#222",
+    color: colors.textStrong,
   },
   orderNumber: {
     fontSize: 13,
-    color: "#888",
+    color: colors.textFaint,
     marginTop: 2,
   },
   progressBarContainer: {
     height: 6,
-    backgroundColor: "#E8E8E8",
+    backgroundColor: colors.progressBg,
     borderRadius: 3,
     marginVertical: 10,
     overflow: "hidden",
   },
   progressBar: {
     height: 6,
-    backgroundColor: "#FF6600",
+    backgroundColor: colors.primary,
     borderRadius: 3,
   },
   progressLabels: {
@@ -546,11 +502,11 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 11,
-    color: "#999",
+    color: colors.textFaintest,
     fontWeight: "600",
   },
   activeStep: {
-    color: "#FF6600",
+    color: colors.primary,
     fontWeight: "bold",
   },
   arrivalRow: {
@@ -560,71 +516,57 @@ const styles = StyleSheet.create({
   },
   arrivalText: {
     fontSize: 14,
-    color: "#666",
+    color: colors.textGray,
     marginLeft: 4,
   },
   moreButton: {
-    backgroundColor: "#FFF3EB",
+    backgroundColor: colors.primaryLight,
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: "center",
     marginTop: 4,
   },
   moreButtonText: {
-    color: "#FF6600",
+    color: colors.primary,
     fontWeight: "bold",
     fontSize: 15,
+  },
+  currentOrdersContainer: {
+    paddingHorizontal: 20,
+    marginTop: 12,
+  },
+  pastOrdersTitle: {
+    paddingLeft: 20,
+  },
+  pastOrdersList: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  cardInfo: {
+    flex: 1,
+  },
+  emptyIcon: {
+    marginBottom: 8,
+  },
+  arrivalIcon: {
+    marginRight: 4,
+  },
+  devButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 10,
+  },
+  devButtonText: {
+    color: colors.textWhite,
+    fontSize: 7,
+    fontWeight: "bold",
   },
   orderDate: {
     fontSize: 13,
-    color: "#888",
+    color: colors.textFaint,
     marginTop: 2,
-  },
-  itemsText: {
-    fontSize: 14,
-    color: "#333",
-    marginBottom: 12,
-    marginTop: 2,
-  },
-  pastOrderButtonsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  reorderButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FF6600",
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    flex: 1,
-    justifyContent: "center",
-  },
-  reorderButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 15,
-  },
-  helpButton: {
-    backgroundColor: "#F2F2F2",
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    marginLeft: 10,
-  },
-  helpButtonText: {
-    color: "#666",
-    fontWeight: "bold",
-    fontSize: 15,
-  },
-  currentOrders: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  currentOrdersList: {
-    marginTop: 10,
   },
 });

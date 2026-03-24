@@ -61,7 +61,6 @@ export default function ProfileScreen() {
   const [points, setPoints] = useState(0);
   const [loadingPoints, setLoadingPoints] = useState(false);
 
-  // 📊 Fetch points actualisés depuis la BDD
   useEffect(() => {
     const fetchPoints = async () => {
       if (!token) return;
@@ -190,7 +189,6 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* TITRE */}
         <Text style={styles.headerTitle}>Profil</Text>
 
         {/* AVATAR */}
@@ -218,17 +216,15 @@ export default function ProfileScreen() {
         {/* POINTS */}
         <PointsCard points={points} />
 
-        {/* ========== SECTION FAVORIS & PRÉFÉRENCES ========== */}
+        {/* FAVORIS & PRÉFÉRENCES */}
         <View style={styles.settingsSection}>
           <Text style={styles.sectionTitle}>Favoris & Préférences</Text>
-
           <SettingRow
             icon="heart-outline"
             label="Favoris"
             iconColor={colors.primary}
             onPress={() => handleSettingPress("Favorites")}
           />
-
           <SettingRow
             icon="options-outline"
             label="Préférences alimentaires"
@@ -237,24 +233,21 @@ export default function ProfileScreen() {
           />
         </View>
 
-        {/* ========== SECTION RÉGLAGES ========== */}
+        {/* RÉGLAGES */}
         <View style={styles.settingsSection}>
           <Text style={styles.sectionTitle}>Réglages</Text>
-
           <SettingRow
             icon="card-outline"
             label="Méthode de paiement"
             iconColor={colors.primary}
             onPress={() => handleSettingPress("PaymentMethod")}
           />
-
           <SettingRow
             icon="location-outline"
             label="Adresse"
             iconColor={colors.primary}
             onPress={() => handleSettingPress("Address")}
           />
-
           <SettingRow
             icon="lock-closed-outline"
             label="Mot de passe"
@@ -329,7 +322,7 @@ const styles = StyleSheet.create({
   },
 
   // CONNECTÉ
-  connectedContainer: { flex: 1, backgroundColor: "#F6F7FB" },
+  connectedContainer: { flex: 1, backgroundColor: colors.backgroundPage },
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 24,
@@ -352,11 +345,11 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "#FFE8D6",
+    backgroundColor: colors.primaryPale,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 3,
-    borderColor: "#FFDCC9",
+    borderColor: colors.primaryBorder,
     overflow: "hidden",
   },
   avatarImage: { width: 120, height: 120, borderRadius: 60 },
@@ -433,7 +426,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#E8E8E8",
+    backgroundColor: colors.progressBg,
     overflow: "hidden",
     marginBottom: 8,
   },
@@ -464,7 +457,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFF3E8",
+    backgroundColor: colors.primaryLight,
     borderRadius: 12,
     paddingVertical: 14,
     marginBottom: 12,
@@ -481,12 +474,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFF3E8",
+    backgroundColor: colors.primaryLight,
     borderRadius: 12,
     paddingVertical: 14,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#FFD699",
+    borderColor: colors.primaryAccent,
   },
   resetButtonText: {
     marginLeft: 10,

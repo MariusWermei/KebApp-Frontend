@@ -10,7 +10,6 @@ import {
   Linking,
   Share,
   useWindowDimensions,
-  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
@@ -40,8 +39,8 @@ export default function RestaurantScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(null);
   const [carouselIndex, setCarouselIndex] = useState(0);
-  const [selectedItem, setSelectedItem] = useState(null); // plat sélectionné pour la modal
-  const [selectedOptions, setSelectedOptions] = useState({}); // options choisies
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedOptions, setSelectedOptions] = useState({});
   const cartSheetRef = useRef(null);
   const hourSheetRef = useRef(null);
   const reviewsSheetRef = useRef(null);
@@ -49,25 +48,20 @@ export default function RestaurantScreen({ route, navigation }) {
 
   const token = useSelector((state) => state.user.token);
   const cartRestaurantName = useSelector((state) => state.cart.restaurantName);
-
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
   const totalCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
   const favorites = useSelector((state) => state.user.favorites);
   const isFavorite = restaurant && (favorites || []).includes(restaurant._id);
+
   const calculateItemPrice = (item) => {
     let price = item.menuItem.basePrice;
-
-    // Ajouter les prix des suppléments
     if (item.selectedOptions?.supplements) {
       item.selectedOptions.supplements.forEach((sup) => {
         const supObj = item.menuItem.supplements?.find((s) => s.name === sup);
-        if (supObj) {
-          price += supObj.price || 0;
-        }
+        if (supObj) price += supObj.price || 0;
       });
     }
-
     return price;
   };
 
@@ -76,32 +70,25 @@ export default function RestaurantScreen({ route, navigation }) {
     0,
   );
   const cartSheetMaxDynamicHeight = Math.floor(screenHeight * 0.86);
-  const Api_Url = process.env.EXPO_PUBLIC_API_URL;
+
   useEffect(() => {
-    // Vide le panier si on change de restaurant
     if (cartRestaurantName && cartRestaurantName !== restaurantName) {
       dispatch(clearCart());
     }
 
-    fetch(`${Api_Url}/restaurants/${encodeURIComponent(restaurantName)}`)
+    fetch(`${API_URL}/restaurants/${encodeURIComponent(restaurantName)}`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Data restaurant reçue:", data);
-        console.log("Photos:", data.restaurant?.photos);
         if (data.result) {
           setRestaurant(data.restaurant);
-          const firstCategory = data.restaurant.menu[0]?.category;
-
-          setActiveCategory(firstCategory);
+          setActiveCategory(data.restaurant.menu[0]?.category);
         }
       })
       .finally(() => setLoading(false));
   }, []);
 
   const toggleFavorite = async () => {
-    if (!token) return;
-
-    if (!restaurant) return;
+    if (!token || !restaurant) return;
     if (isFavorite) {
       dispatch(removeFavorite(restaurant._id));
       await fetch(`${API_URL}/users/favorites`, {
@@ -124,15 +111,13 @@ export default function RestaurantScreen({ route, navigation }) {
       });
     }
   };
-  {
-    // console.log("photo restaurant", restaurant.photos);
-  }
 
   const openModal = (item) => {
     setSelectedItem(item);
     setSelectedOptions({});
     menuSheetRef.current?.expand();
   };
+
   const handleShare = async () => {
     try {
       await Share.share({
@@ -142,24 +127,16 @@ export default function RestaurantScreen({ route, navigation }) {
       // Error silently ignored
     }
   };
+
   const toggleOption = (label, option, multiple = true, maxCount = null) => {
     setSelectedOptions((prev) => {
       const current = prev[label] || [];
       if (multiple) {
         if (current.includes(option)) {
-          return {
-            ...prev,
-            [label]: current.filter((o) => o !== option),
-          };
+          return { ...prev, [label]: current.filter((o) => o !== option) };
         } else {
-          // Si maxCount est défini et on a déjà atteint la limite, ne pas ajouter
-          if (maxCount && current.length >= maxCount) {
-            return prev;
-          }
-          return {
-            ...prev,
-            [label]: [...current, option],
-          };
+          if (maxCount && current.length >= maxCount) return prev;
+          return { ...prev, [label]: [...current, option] };
         }
       } else {
         return { ...prev, [label]: [option] };
@@ -169,11 +146,7 @@ export default function RestaurantScreen({ route, navigation }) {
 
   const handleAddToCart = () => {
     dispatch(
-      addToCart({
-        menuItem: selectedItem,
-        selectedOptions,
-        restaurantName,
-      }),
+      addToCart({ menuItem: selectedItem, selectedOptions, restaurantName }),
     );
     menuSheetRef.current?.close();
   };
@@ -191,6 +164,7 @@ export default function RestaurantScreen({ route, navigation }) {
   const handleDecreaseQuantity = (index) => {
     dispatch(decreaseQuantity(index));
   };
+
   if (loading)
     return (
       <ActivityIndicator
@@ -200,13 +174,14 @@ export default function RestaurantScreen({ route, navigation }) {
       />
     );
   if (!restaurant) return <Text>Restaurant non trouvé</Text>;
+
   const isOpenNow = restaurant.isOpenNow;
+  const openStatusColor = isOpenNow ? colors.success : colors.error;
   const categories = [...new Set(restaurant.menu.map((item) => item.category))];
   const filteredMenu = restaurant.menu.filter(
     (item) => item.category === activeCategory,
   );
 
-  // Affiche le formulaire de connexion si pas de token
   if (!token) {
     return (
       <SafeAreaView style={styles.container}>
@@ -233,7 +208,6 @@ export default function RestaurantScreen({ route, navigation }) {
     );
   }
 
-  // Affiche le restaurant et le menu
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
@@ -250,7 +224,6 @@ export default function RestaurantScreen({ route, navigation }) {
               scrollEventThrottle={16}
               style={{ width: screenWidth }}
             >
-              {/* Photo de couverture */}
               {Array.isArray(restaurant.photos) &&
               restaurant.photos.length > 0 ? (
                 restaurant.photos.map((photo, index) => (
@@ -258,12 +231,6 @@ export default function RestaurantScreen({ route, navigation }) {
                     key={index}
                     source={{ uri: photo }}
                     style={[styles.coverImage, { width: screenWidth }]}
-                    onError={(error) =>
-                      console.log(`Erreur chargement photo ${index}:`, error)
-                    }
-                    onLoadStart={() =>
-                      console.log(`Chargement photo ${index}...`)
-                    }
                   />
                 ))
               ) : (
@@ -272,7 +239,6 @@ export default function RestaurantScreen({ route, navigation }) {
                 />
               )}
             </ScrollView>
-            {/* Dots carousel par dessus l'image */}
             {Array.isArray(restaurant.photos) &&
               restaurant.photos.length > 1 && (
                 <View style={styles.carouselDotsOverlay} pointerEvents="none">
@@ -288,17 +254,21 @@ export default function RestaurantScreen({ route, navigation }) {
                 </View>
               )}
           </View>
-          {/* Bouton retour */}
+
           <View style={styles.headerButtons}>
             <TouchableOpacity
               style={styles.headerBtn}
               onPress={() => navigation.goBack()}
             >
-              <Ionicons name="arrow-back" size={20} color="#fff" />
+              <Ionicons name="arrow-back" size={20} color={colors.textWhite} />
             </TouchableOpacity>
             <View style={styles.headerRight}>
               <TouchableOpacity style={styles.headerBtn} onPress={handleShare}>
-                <Ionicons name="share-outline" size={20} color="#fff" />
+                <Ionicons
+                  name="share-outline"
+                  size={20}
+                  color={colors.textWhite}
+                />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.headerBtn}
@@ -315,7 +285,6 @@ export default function RestaurantScreen({ route, navigation }) {
             </View>
           </View>
 
-          {/* Infos restaurant */}
           <View style={styles.infoCard}>
             <Text style={styles.name}>{restaurant.name}</Text>
             <TouchableOpacity
@@ -333,7 +302,11 @@ export default function RestaurantScreen({ route, navigation }) {
               >
                 📍 {restaurant.address}
               </Text>
-              <Ionicons name="chevron-forward" size={16} color="#E8572A" />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={colors.primary}
+              />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -355,7 +328,11 @@ export default function RestaurantScreen({ route, navigation }) {
                 📞 {restaurant.phone || "Numéro de téléphone inconnu"}
               </Text>
               {restaurant.phone && (
-                <Ionicons name="chevron-forward" size={16} color="#E8572A" />
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.primary}
+                />
               )}
             </TouchableOpacity>
 
@@ -364,7 +341,6 @@ export default function RestaurantScreen({ route, navigation }) {
                 style={styles.infoHalf}
                 onPress={() => reviewsSheetRef.current?.expand()}
               >
-                {/* Affiche la note et le nombre d'avis, ouvre la modal des avis au clic */}
                 <View style={styles.reviewsBtnLeft}>
                   <Ionicons name="star" size={16} color={colors.primary} />
                   <Text style={styles.reviewsBtnText}>
@@ -377,7 +353,7 @@ export default function RestaurantScreen({ route, navigation }) {
                   color={colors.primary}
                 />
               </TouchableOpacity>
-              {/*Affiche les horaires d'ouverture dans une modal*/}
+
               <TouchableOpacity
                 style={styles.infoHalf}
                 onPress={() => hourSheetRef.current?.expand()}
@@ -386,13 +362,10 @@ export default function RestaurantScreen({ route, navigation }) {
                   <Ionicons
                     name="time-outline"
                     size={16}
-                    color={isOpenNow ? "#22C55E" : "#EF4444"}
+                    color={openStatusColor}
                   />
                   <Text
-                    style={[
-                      styles.reviewsBtnText,
-                      { color: isOpenNow ? "#22C55E" : "#EF4444" },
-                    ]}
+                    style={[styles.reviewsBtnText, { color: openStatusColor }]}
                   >
                     {isOpenNow ? "Ouvert" : "Fermé"}
                   </Text>
@@ -406,7 +379,6 @@ export default function RestaurantScreen({ route, navigation }) {
             </View>
           </View>
 
-          {/* Filtres catégories */}
           <View style={styles.filterScrollContainer}>
             <ScrollView
               horizontal
@@ -441,7 +413,6 @@ export default function RestaurantScreen({ route, navigation }) {
             />
           </View>
 
-          {/* Liste des plats */}
           {filteredMenu.map((item) => (
             <TouchableOpacity
               onPress={() => openModal(item)}
@@ -462,7 +433,6 @@ export default function RestaurantScreen({ route, navigation }) {
           ))}
         </ScrollView>
 
-        {/* Bouton panier */}
         <TouchableOpacity
           style={styles.cartBar}
           onPress={() => {
@@ -478,6 +448,7 @@ export default function RestaurantScreen({ route, navigation }) {
           </Text>
         </TouchableOpacity>
       </SafeAreaView>
+
       {/* Modale horaires */}
       <ModalBottomSheet
         sheetRef={hourSheetRef}
@@ -486,18 +457,10 @@ export default function RestaurantScreen({ route, navigation }) {
       >
         <View style={styles.hoursHeader}>
           <Text style={styles.hoursTitle}>Horaires</Text>
-
-          <Text
-            style={[
-              styles.openBadgeText,
-              { color: isOpenNow ? "#1dca5dff" : "#EF4444" },
-            ]}
-          >
+          <Text style={[styles.openBadgeText, { color: openStatusColor }]}>
             {isOpenNow ? "Ouvert" : "Fermé"}
           </Text>
         </View>
-
-        {/* Liste horaires */}
         {restaurant.openingHours?.length > 0 ? (
           restaurant.openingHours.map((line, index) => {
             const [day, hours] = line.split(": ");
@@ -524,10 +487,8 @@ export default function RestaurantScreen({ route, navigation }) {
           <Text style={styles.reviewsRatingText}>{restaurant.rating}</Text>
           <Text style={styles.reviewsTotal}>({restaurant.totalRatings})</Text>
         </View>
-
         {restaurant.reviews?.map((review, index) => (
           <View key={index} style={styles.reviewCard}>
-            {/* Auteur */}
             <View style={styles.reviewAuthor}>
               {review.profilePhoto ? (
                 <Image
@@ -546,8 +507,6 @@ export default function RestaurantScreen({ route, navigation }) {
                 <Text style={styles.reviewDate}>{review.date}</Text>
               </View>
             </View>
-
-            {/* Étoiles */}
             <View style={styles.reviewStars}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <Ionicons
@@ -558,8 +517,6 @@ export default function RestaurantScreen({ route, navigation }) {
                 />
               ))}
             </View>
-
-            {/* Commentaire */}
             <Text style={styles.reviewText}>{review.text}</Text>
           </View>
         ))}
@@ -586,8 +543,6 @@ export default function RestaurantScreen({ route, navigation }) {
           <Text style={styles.modalPrice}>
             {((selectedItem?.basePrice || 0) / 100).toFixed(2)}€
           </Text>
-
-          {/* Sauces */}
           {selectedItem?.sauces?.length > 0 && (
             <View style={styles.optionSection}>
               <Text style={styles.optionLabel}>Sauce</Text>
@@ -615,8 +570,6 @@ export default function RestaurantScreen({ route, navigation }) {
               ))}
             </View>
           )}
-
-          {/* Customizations (garniture, pain, viandes...) */}
           {selectedItem?.customizations?.map((custom) => (
             <View key={custom.label} style={styles.optionSection}>
               <Text style={styles.optionLabel}>{custom.label}</Text>
@@ -651,8 +604,6 @@ export default function RestaurantScreen({ route, navigation }) {
               ))}
             </View>
           ))}
-
-          {/* Suppléments */}
           {selectedItem?.supplements?.length > 0 && (
             <View style={styles.optionSection}>
               <Text style={styles.optionLabel}>Suppléments</Text>
@@ -680,15 +631,12 @@ export default function RestaurantScreen({ route, navigation }) {
             </View>
           )}
         </BottomSheetScrollView>
-
-        {/* Boutons fixes en bas */}
-
         <TouchableOpacity style={styles.addToCartBtn} onPress={handleAddToCart}>
           <Text style={styles.addToCartText}>Ajouter au panier</Text>
         </TouchableOpacity>
       </BottomSheet>
 
-      {/* modal du panier */}
+      {/* Modal panier */}
       <ModalBottomSheet
         sheetRef={cartSheetRef}
         enableDynamicSizing
@@ -714,7 +662,6 @@ export default function RestaurantScreen({ route, navigation }) {
         footerStyle={styles.cartFooterFixed}
       >
         <Text style={styles.modalTitle}>Votre panier</Text>
-
         {cartItems.length === 0 ? (
           <Text style={styles.emptyCartText}>Panier vide</Text>
         ) : (
@@ -759,18 +706,7 @@ export default function RestaurantScreen({ route, navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.backgroundLight },
-  coverImage: {
-    height: 220,
-    resizeMode: "cover",
-  },
-  carouselDotsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 8,
-    marginBottom: 8,
-    gap: 6,
-  },
+  coverImage: { height: 220, resizeMode: "cover" },
   carouselDotsOverlay: {
     position: "absolute",
     bottom: 18,
@@ -843,9 +779,7 @@ const styles = StyleSheet.create({
   filterBtnActive: { backgroundColor: colors.primary },
   filterText: { fontFamily: fonts.family.semibold, color: colors.textMuted },
   filterTextActive: { color: colors.textWhite },
-  filterScrollContainer: {
-    position: "relative",
-  },
+  filterScrollContainer: { position: "relative" },
   filterScrollShadow: {
     position: "absolute",
     right: 0,
@@ -873,13 +807,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  linkBtnDisabled: {
-    backgroundColor: colors.border,
-    opacity: 0.6,
-  },
-  phoneDisabled: {
-    color: colors.textMuted,
-  },
+  linkBtnDisabled: { backgroundColor: colors.border, opacity: 0.6 },
+  phoneDisabled: { color: colors.textMuted },
   menuInfo: { flex: 1, marginRight: 12 },
   menuName: { fontSize: 16, fontFamily: fonts.family.semibold },
   menuDesc: {
@@ -1109,14 +1038,8 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 10,
   },
-  cartItemInfo: {
-    flex: 1,
-  },
-  cartItemActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
+  cartItemInfo: { flex: 1 },
+  cartItemActions: { flexDirection: "row", alignItems: "center", gap: 12 },
   addQuantityBtn: {
     backgroundColor: colors.primary,
     color: colors.textWhite,
@@ -1147,7 +1070,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 20,
-
     backgroundColor: colors.backgroundLight,
   },
   emptyCartText: {

@@ -18,8 +18,7 @@ import fonts from "../constants/fonts";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useDispatch } from "react-redux";
-import { setToken } from "../reducers/user";
-import { setUser, setFavorites } from "../reducers/user";
+import { setToken, setUser, setFavorites } from "../reducers/user";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -56,8 +55,7 @@ export default function LoginScreen() {
 
       if (data.result) {
         dispatch(setToken(data.token));
-        dispatch(setUser(data.user)); // Passe tout l'objet, pas juste le username
-        // Charger les favoris
+        dispatch(setUser(data.user));
         const favResponse = await fetch(`${API_URL}/users/favorites`, {
           headers: { Authorization: `Bearer ${data.token}` },
         });
@@ -112,7 +110,6 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.canvas}>
-            {/* Card */}
             <View style={styles.card}>
               <TouchableOpacity
                 style={styles.closeWrap}
@@ -136,7 +133,6 @@ export default function LoginScreen() {
                 Entre tes identifiants pour accéder à ton compte
               </Text>
 
-              {/* Email */}
               <Text style={styles.label}>Email</Text>
               <View style={styles.inputWrap}>
                 <TextInput
@@ -150,7 +146,6 @@ export default function LoginScreen() {
                 />
               </View>
 
-              {/* Password */}
               <View style={styles.passwordRow}>
                 <Text style={styles.label}>Mot de passe</Text>
                 <TouchableOpacity onPress={handleForgotPassword}>
@@ -180,20 +175,17 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Login button */}
               <Button
                 title={loading ? "Connexion ..." : "Se connecter"}
                 onPress={handleSignin}
               />
 
-              {/* Divider */}
               <View style={styles.dividerRow}>
                 <View style={styles.dividerLine} />
                 <Text style={styles.dividerText}>Ou continuer avec</Text>
                 <View style={styles.dividerLine} />
               </View>
 
-              {/* Social buttons */}
               <View style={styles.socialRow}>
                 <TouchableOpacity
                   style={styles.socialBtn}
@@ -263,11 +255,6 @@ const styles = StyleSheet.create({
     right: 18,
     zIndex: 10,
   },
-  skip: {
-    fontFamily: fonts.family.bold,
-    color: colors.primary,
-    fontSize: fonts.size.body,
-  },
   iconWrap: {
     alignItems: "center",
     marginTop: 22,
@@ -277,7 +264,7 @@ const styles = StyleSheet.create({
     width: 62,
     height: 62,
     borderRadius: 16,
-    backgroundColor: "#F7E7DE",
+    backgroundColor: colors.iconBg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -379,7 +366,7 @@ const styles = StyleSheet.create({
     width: 18,
     textAlign: "center",
     fontFamily: fonts.family.black,
-    color: "#4285F4",
+    color: colors.googleBlue,
   },
   socialText: {
     color: colors.textDark,
