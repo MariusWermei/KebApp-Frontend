@@ -1,0 +1,51 @@
+export default {
+  expo: {
+    name: "Keb'App",
+    slug: "kebap",
+    version: "1.0.0",
+    scheme: "kebapp",
+    orientation: "portrait",
+    icon: "./assets/logoV3.png",
+    userInterfaceStyle: "light",
+    splash: {
+      image: "./assets/logoV3.png",
+      resizeMode: "contain",
+      backgroundColor: "#ffffff"
+    },
+    ios: {
+      supportsTablet: true
+    },
+    android: {
+      adaptiveIcon: {
+        backgroundColor: "#E6F4FE",
+        foregroundImage: "",
+        backgroundImage: "",
+        monochromeImage: ""
+      },
+      permissions: [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.INTERNET"
+      ],
+      package: "com.banersoso.d1.kebap"
+    },
+    web: {
+      favicon: "./assets/favicon.png"
+    },
+    plugins: [
+      "expo-font",
+      [
+        "react-native-maps",
+        {
+          mapsApiKey: process.env.MAPS_API_KEY,
+        }
+      ]
+    ],
+    extra: {
+      eas: {
+        projectId: "8caa4eb2-a00a-4c82-8743-417cd9dc0d1b"
+      }
+    },
+    owner: "bannersoso"
+  }
+};
